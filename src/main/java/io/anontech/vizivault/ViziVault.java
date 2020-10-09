@@ -1,4 +1,4 @@
-package main.java.io.vizivault;
+package io.anontech.vizivault;
 
 public class ViziVault {
 
