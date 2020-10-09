@@ -1,5 +1,7 @@
 package io.anontech.vizivault;
 
+import io.anontech.vizivault.model.*;
+
 public class ViziVault {
 
   private String baseUrl;
@@ -35,6 +37,7 @@ public class ViziVault {
 
   public Entity findByEntity(String entityId) {
     //...
+    return null;
   }
 
   public void save(Entity entity) {
