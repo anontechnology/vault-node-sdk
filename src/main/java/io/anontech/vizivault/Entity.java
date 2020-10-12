@@ -1,4 +1,4 @@
-package io.anontech.vizivault.model;
+package io.anontech.vizivault;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import io.anontech.vizivault.dto.DataPointElement;
+import lombok.Getter;
+import lombok.Setter;
 
 public class Entity {
 
@@ -15,7 +17,9 @@ public class Entity {
   private Set<String> changedAttributes;
 
   @SuppressWarnings("unchecked")
-  public Entity(List<DataPointElement> data) {
+  public Entity(List<DataPointElement> data, String id) {
+    this.id = id;
+
     attributes = new HashMap<>();
     for(DataPointElement element : data) {
       if(attributes.containsKey(element.getAttribute())) {
@@ -32,6 +36,18 @@ public class Entity {
         attributes.put(element.getAttribute(), element.getValue());
       }
     }
+  }
+
+  @Getter
+  @Setter
+  private String id;
+
+  void purge() {
+    attributes.clear();
+  }
+
+  void clearAttribute(String attributeKey) {
+    attributes.remove(attributeKey);
   }
 
   public void setAttribute(String attributeKey, Object value) {
