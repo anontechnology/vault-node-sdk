@@ -2,6 +2,7 @@ package io.anontech.vizivault;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +20,8 @@ public class Entity {
   @SuppressWarnings("unchecked")
   public Entity(List<DataPointElement> data, String id) {
     this.id = id;
+
+    changedAttributes = new HashSet<>();
 
     attributes = new HashMap<>();
     for(DataPointElement element : data) {
@@ -48,6 +51,10 @@ public class Entity {
 
   void clearAttribute(String attributeKey) {
     attributes.remove(attributeKey);
+  }
+
+  Set<String> getChangedAttributes() {
+    return changedAttributes;
   }
 
   public void setAttribute(String attributeKey, Object value) {

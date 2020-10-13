@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.List;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -22,7 +23,7 @@ public class ViziVault {
   private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
   
   private URL baseUrl;
-  //private String clientId;
+  //private String clientId; // this is a header. ask andrew
   private String apiKey;
   private String encryptionKey;
   private String decryptionKey;
@@ -60,17 +61,21 @@ public class ViziVault {
     return this;
   }
 
-  private JsonObject post(String url, Object body, Headers headers) throws IOException {
-    
-    Response response = httpClient.newCall(
-        new Request.Builder()
-          .url(new URL(baseUrl, url))
-          .headers(headers)
-          .post(RequestBody.create(gson.toJson(body), JSON))
-          .build()
-        ).execute();
+  private JsonObject post(String url, Object body, Headers headers) {
+    try {
+      Response response = httpClient.newCall(
+          new Request.Builder()
+            .url(new URL(baseUrl, url))
+            .headers(headers)
+            .post(RequestBody.create(gson.toJson(body), JSON))
+            .build()
+          ).execute();
 
-    return gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
+      return gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
+    } catch(IOException e) {
+      // who cares
+      throw new RuntimeException(e);
+    }
   }
 
   private JsonObject get(String url, Headers headers) {
@@ -108,16 +113,32 @@ public class ViziVault {
     }
   }
 
-  private JsonObject getWithEncryptionKey(String url) {
-    return get(url, new Headers.Builder().add("X-Decryption-Key", encryptionKey).build());
+  private JsonObject post(String url, Object body) {
+    return post(url, body, new Headers.Builder().build());
+  }
+
+  private JsonObject getWithDecryptionKey(String url) {
+    return get(url, new Headers.Builder().add("X-Decryption-Key", decryptionKey).build());
+  }
+
+  private JsonObject postWithEncryptionKey(String url, Object body) {
+    return post(url, body, new Headers.Builder().add("X-Encryption-Key", encryptionKey).build());
   }
 
   public Entity findByEntity(String entityId) {
-    List<DataPointElement> data = gson.fromJson(getWithEncryptionKey(String.format("/users/%s/attributes", entityId)).get("data"), new TypeToken<List<DataPointElement>>(){}.getType());
+    List<DataPointElement> data = gson.fromJson(getWithDecryptionKey(String.format("/users/%s/attributes", entityId)).get("data"), new TypeToken<List<DataPointElement>>(){}.getType());
     return new Entity(data, entityId);
   }
 
   public void save(Entity entity) {
+    JsonObject storageRequest = new JsonObject();
+    JsonArray pointsList = new JsonArray();
+    for(String attribute : entity.getChangedAttributes()) {
+      pointsList.add(gson.toJsonTree(entity.getAttribute(attribute)));
+    }
+    storageRequest.add("dataPoints", pointsList);
+
+    postWithEncryptionKey(String.format("/user/%s/attributes", entity.getId()), storageRequest);
     // POST /user/{id}/attributes
     // just the ones that are marked as having changed, though
   }
@@ -133,7 +154,7 @@ public class ViziVault {
   }
 
   public void storeAttribute(Attribute attribute) {
-    // ...
+    post("/attributes", attribute);
   }
 
   public void storeTag(Tag tag) {
@@ -141,7 +162,17 @@ public class ViziVault {
   }
 
   public void storeRegulation(Regulation regulation) {
-    // ...
+    post("/regulations", regulation);
   }
 
+  public List<DataPointElement> search(Object searchRequest){
+    post("/data/search", searchRequest);
+    // ...
+    return null;
+  }
+
+  public <T> T getDataPoint(String dataPointId, Class<T> dataType) {
+    return gson.fromJson(getWithDecryptionKey(String.format("/data/%s", dataPointId)), dataType);
+    // TODO error handling
+  }
 }
