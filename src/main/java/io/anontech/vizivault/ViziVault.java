@@ -131,6 +131,11 @@ public class ViziVault {
   }
 
   public void save(Entity entity) {
+    
+    for(String attribute : entity.getDeletedAttributes()) {
+      delete(String.format("/user/%s/attribute/%s", entity.getId(), attribute));
+    }
+    
     JsonObject storageRequest = new JsonObject();
     JsonArray pointsList = new JsonArray();
     for(String attribute : entity.getChangedAttributes()) {
@@ -139,8 +144,7 @@ public class ViziVault {
     storageRequest.add("dataPoints", pointsList);
 
     postWithEncryptionKey(String.format("/user/%s/attributes", entity.getId()), storageRequest);
-    // POST /user/{id}/attributes
-    // just the ones that are marked as having changed, though
+
   }
 
   public void purge(Entity entity) {

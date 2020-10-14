@@ -16,6 +16,7 @@ public class Entity {
   private Map<String, Object> attributes;
 
   private Set<String> changedAttributes;
+  private Set<String> deletedAttributes;
 
   @SuppressWarnings("unchecked")
   public Entity(List<DataPointElement> data, String id) {
@@ -57,6 +58,10 @@ public class Entity {
     return changedAttributes;
   }
 
+  Set<String> getDeletedAttributes() {
+    return deletedAttributes;
+  }
+
   public void setAttribute(String attributeKey, Object value) {
     attributes.put(attributeKey, value);
     changedAttributes.add(attributeKey);
@@ -64,6 +69,11 @@ public class Entity {
 
   public Object getAttribute(String attributeKey) {
     return attributes.get(attributeKey);
+  }
+
+  public void deleteAttribute(String attributeKey) {
+    attributes.remove(attributeKey);
+    deletedAttributes.add(attributeKey);
   }
 
   // some methods that would be nice to have:
