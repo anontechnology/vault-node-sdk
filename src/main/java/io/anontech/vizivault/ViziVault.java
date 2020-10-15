@@ -165,10 +165,8 @@ public class ViziVault {
     post("/regulations", regulation);
   }
 
-  public List<Attribute> search(Object searchRequest){
-    post("/data/search", searchRequest);
-    // ...
-    return null;
+  public List<Attribute> search(SearchRequest searchRequest){
+    return gson.fromJson(post("/data/search", searchRequest).get("data"), new TypeToken<List<Attribute>>(){}.getType());
   }
 
   public Attribute getDataPoint(String dataPointId) {
