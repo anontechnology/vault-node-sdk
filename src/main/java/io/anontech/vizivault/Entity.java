@@ -7,37 +7,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.anontech.vizivault.dto.DataPointElement;
 import lombok.Getter;
 import lombok.Setter;
 
 public class Entity {
 
-  private Map<String, Object> attributes;
+  private Map<String, Attribute> attributes;
+  private Map<String, List<Attribute>> repeatedAttributes;
 
-  private Set<String> changedAttributes;
+  private Set<Attribute> changedAttributes;
   private Set<String> deletedAttributes;
 
   @SuppressWarnings("unchecked")
-  public Entity(List<DataPointElement> data, String id) {
+  public Entity(List<Attribute> data, String id) {
     this.id = id;
 
     changedAttributes = new HashSet<>();
 
     attributes = new HashMap<>();
-    for(DataPointElement element : data) {
-      if(attributes.containsKey(element.getAttribute())) {
-        List<Object> repeatableValues;
-        Object existingValue = attributes.get(element.getAttribute());
-        if(existingValue instanceof List<?>) {
-          repeatableValues = (List<Object>) existingValue;
+    for(Attribute element : data) {
+      String attributeKey = element.getAttribute();
+      if(attributes.containsKey(attributeKey)) {
+        List<Attribute> repeatableValues;
+        if(repeatedAttributes.containsKey(attributeKey)) {
+          repeatableValues = repeatedAttributes.get(attributeKey);
         } else {
           repeatableValues = new ArrayList<>();
-          attributes.put(element.getAttribute(), repeatableValues);
+          repeatedAttributes.put(attributeKey, repeatableValues);
         }
-        repeatableValues.add(element.getValue());
+        repeatableValues.add(element);
       } else {
-        attributes.put(element.getAttribute(), element.getValue());
+        attributes.put(attributeKey, element);
       }
     }
   }
@@ -54,7 +54,7 @@ public class Entity {
     attributes.remove(attributeKey);
   }
 
-  Set<String> getChangedAttributes() {
+  Set<Attribute> getChangedAttributes() {
     return changedAttributes;
   }
 
@@ -63,8 +63,16 @@ public class Entity {
   }
 
   public void setAttribute(String attributeKey, Object value) {
-    attributes.put(attributeKey, value);
-    changedAttributes.add(attributeKey);
+    Attribute attribute = new Attribute();
+    attribute.setAttribute(attributeKey);
+    attribute.setValue(value);
+
+    if(repeatedAttributes.containsKey(attributeKey)){
+      repeatedAttributes.get(attributeKey).add(attribute);
+    } else {
+      attributes.put(attributeKey, attribute);
+    }
+    changedAttributes.add(attribute);
   }
 
   public Object getAttribute(String attributeKey) {

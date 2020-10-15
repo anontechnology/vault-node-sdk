@@ -10,7 +10,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
-import io.anontech.vizivault.dto.DataPointElement;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -23,7 +22,6 @@ public class ViziVault {
   private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
   
   private URL baseUrl;
-  //private String clientId; // this is a header. ask andrew
   private String apiKey;
   private String encryptionKey;
   private String decryptionKey;
@@ -41,13 +39,8 @@ public class ViziVault {
     return this;
   }
 
-  //public ViziVault withClientId(String clientId) {
-  //  this.clientId = clientId;
-  //  return this;
-  //}
-
   public ViziVault withApiKey(String apiKey) {
-    this.apiKey = apiKey;
+    this.apiKey = String.format("Bearer %s", apiKey);
     return this;
   }
 
@@ -66,49 +59,48 @@ public class ViziVault {
       Response response = httpClient.newCall(
           new Request.Builder()
             .url(new URL(baseUrl, url))
-            .headers(headers)
+            .headers(new Headers.Builder().addAll(headers).add("Authorization", apiKey).build())
             .post(RequestBody.create(gson.toJson(body), JSON))
             .build()
           ).execute();
 
       return gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
     } catch(IOException e) {
-      // who cares
+      // figure out later
       throw new RuntimeException(e);
     }
   }
 
   private JsonObject get(String url, Headers headers) {
-    // TODO api key
     try {
       Response response = httpClient.newCall(
           new Request.Builder()
             .url(new URL(baseUrl, url))
-            .headers(headers)
+            .headers(new Headers.Builder().addAll(headers).add("Authorization", apiKey).build())
             .get()
             .build()
           ).execute();
 
       return gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
     } catch(IOException e) {
-      // who cares
+      // figure out later
       throw new RuntimeException(e);
     }
   }
   
   private JsonObject delete(String url) {
-    // TODO api key
     try {
       Response response = httpClient.newCall(
           new Request.Builder()
             .url(new URL(baseUrl, url))
+            .headers(new Headers.Builder().add("Authorization", apiKey).build())
             .delete()
             .build()
           ).execute();
 
       return gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
     } catch(IOException e) {
-      // who cares
+      // figure out later
       throw new RuntimeException(e);
     }
   }
@@ -126,7 +118,7 @@ public class ViziVault {
   }
 
   public Entity findByEntity(String entityId) {
-    List<DataPointElement> data = gson.fromJson(getWithDecryptionKey(String.format("/users/%s/attributes", entityId)).get("data"), new TypeToken<List<DataPointElement>>(){}.getType());
+    List<Attribute> data = gson.fromJson(getWithDecryptionKey(String.format("/users/%s/attributes", entityId)).get("data"), new TypeToken<List<Attribute>>(){}.getType());
     return new Entity(data, entityId);
   }
 
@@ -135,11 +127,11 @@ public class ViziVault {
     for(String attribute : entity.getDeletedAttributes()) {
       delete(String.format("/user/%s/attribute/%s", entity.getId(), attribute));
     }
-    
+
     JsonObject storageRequest = new JsonObject();
     JsonArray pointsList = new JsonArray();
-    for(String attribute : entity.getChangedAttributes()) {
-      pointsList.add(gson.toJsonTree(entity.getAttribute(attribute)));
+    for(Attribute attribute : entity.getChangedAttributes()) {
+      pointsList.add(gson.toJsonTree(attribute));
     }
     storageRequest.add("dataPoints", pointsList);
 
@@ -157,8 +149,12 @@ public class ViziVault {
     entity.clearAttribute(attributeKey);
   }
 
-  public void storeAttribute(Attribute attribute) {
+  public void storeAttribute(AttributeDefinition attribute) {
     post("/attributes", attribute);
+  }
+
+  public AttributeDefinition getAttribute(String attributeKey) {
+    return gson.fromJson(getWithDecryptionKey(String.format("/attributes/%s", attributeKey)), AttributeDefinition.class);
   }
 
   public void storeTag(Tag tag) {
@@ -169,14 +165,14 @@ public class ViziVault {
     post("/regulations", regulation);
   }
 
-  public List<DataPointElement> search(Object searchRequest){
+  public List<Attribute> search(Object searchRequest){
     post("/data/search", searchRequest);
     // ...
     return null;
   }
 
-  public <T> T getDataPoint(String dataPointId, Class<T> dataType) {
-    return gson.fromJson(getWithDecryptionKey(String.format("/data/%s", dataPointId)), dataType);
+  public Attribute getDataPoint(String dataPointId) {
+    return gson.fromJson(getWithDecryptionKey(String.format("/data/%s", dataPointId)), Attribute.class);
     // TODO error handling
   }
 }
