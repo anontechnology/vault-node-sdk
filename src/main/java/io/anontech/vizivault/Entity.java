@@ -18,7 +18,6 @@ public class Entity {
   private Set<Attribute> changedAttributes;
   private Set<String> deletedAttributes;
 
-  @SuppressWarnings("unchecked")
   public Entity(List<Attribute> data, String id) {
     this.id = id;
 
