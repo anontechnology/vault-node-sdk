@@ -81,7 +81,13 @@ public class ViziVault {
             .build()
           ).execute();
 
-      return gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
+      JsonObject responseData = gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
+
+      if(! response.isSuccessful()){
+        throw new RuntimeException(String.format("Vault server returned an error: %s: %s", responseData.get("status").getAsString(), responseData.get("message").getAsString()));
+      }
+
+      return responseData;
     } catch(IOException e) {
       // figure out later
       throw new RuntimeException(e);
