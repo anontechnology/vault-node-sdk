@@ -61,12 +61,16 @@ public class AttributeDefinition {
             continue fields;
           }
         }
-        Type fieldType = f.getGenericType();
-        if(fieldType instanceof ParameterizedType && ((ParameterizedType) fieldType).getRawType().equals(List.class)) {
-          Type listElementType = ((ParameterizedType) fieldType).getActualTypeArguments()[0];
-          schema.add('['+f.getName()+']', constructSchema(listElementType));
+        if(f.getClass().isArray()){
+          schema.add('['+f.getName()+']', constructSchema(f.getClass().getComponentType()));
         } else {
-          schema.add(f.getName(), constructSchema(f.getType()));
+          Type fieldType = f.getGenericType();
+          if(fieldType instanceof ParameterizedType && ((ParameterizedType) fieldType).getRawType().equals(List.class)) {
+            Type listElementType = ((ParameterizedType) fieldType).getActualTypeArguments()[0];
+            schema.add('['+f.getName()+']', constructSchema(listElementType));
+          } else {
+            schema.add(f.getName(), constructSchema(f.getType()));
+          }
         }
       }
       typeClass = typeClass.getSuperclass();
