@@ -66,6 +66,11 @@ public class Entity {
     attribute.setAttribute(attributeKey);
     attribute.setValue(value);
 
+    setAttribute(attribute);
+  }
+
+  public void setAttribute(Attribute attribute) {
+    String attributeKey = attribute.getAttribute();
     if(repeatedAttributes.containsKey(attributeKey)){
       repeatedAttributes.get(attributeKey).add(attribute);
     } else {
