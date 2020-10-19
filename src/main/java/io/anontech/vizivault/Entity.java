@@ -80,8 +80,12 @@ public class Entity {
     changedAttributes.add(attribute);
   }
 
-  public Attribute getAttribute(String attributeKey) {
-    return attributes.get(attributeKey);
+  public List<Attribute> getAttribute(String attributeKey) {
+    if(attributes.containsKey(attributeKey)) {
+      return List.of(attributes.get(attributeKey));
+    } else {
+      return repeatedAttributes.get(attributeKey);
+    }
   }
 
   public List<Attribute> getAttributes() {

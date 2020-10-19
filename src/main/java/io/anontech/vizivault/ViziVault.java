@@ -167,7 +167,7 @@ public class ViziVault {
     entity.clearAttribute(attributeKey);
   }
 
-  public void storeAttribute(AttributeDefinition attribute) {
+  public void storeAttributeDefinition(AttributeDefinition attribute) {
     post("/attributes", attribute);
   }
 
