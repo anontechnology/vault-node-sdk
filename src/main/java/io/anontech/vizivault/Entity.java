@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -81,6 +82,10 @@ public class Entity {
 
   public Attribute getAttribute(String attributeKey) {
     return attributes.get(attributeKey);
+  }
+
+  public List<Attribute> getAttributes() {
+    return attributes.values().stream().collect(Collectors.toList());
   }
 
   public void deleteAttribute(String attributeKey) {
