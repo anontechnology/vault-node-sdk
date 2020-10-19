@@ -64,7 +64,13 @@ public class ViziVault {
             .build()
           ).execute();
 
-      return gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
+      JsonObject responseData = gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
+      
+      if(! response.isSuccessful()){
+        throw new VaultException(responseData.get("message").getAsString(), response.code());
+      }
+
+      return responseData;
     } catch(IOException e) {
       // figure out later
       throw new RuntimeException(e);
@@ -84,7 +90,7 @@ public class ViziVault {
       JsonObject responseData = gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
 
       if(! response.isSuccessful()){
-        throw new RuntimeException(String.format("Vault server returned an error: %s: %s", responseData.get("status").getAsString(), responseData.get("message").getAsString()));
+        throw new VaultException(responseData.get("message").getAsString(), response.code());
       }
 
       return responseData;
@@ -104,7 +110,13 @@ public class ViziVault {
             .build()
           ).execute();
 
-      return gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
+          JsonObject responseData = gson.fromJson(response.body().string(), JsonElement.class).getAsJsonObject();
+      
+          if(! response.isSuccessful()){
+            throw new VaultException(responseData.get("message").getAsString(), response.code());
+          }
+    
+          return responseData;
     } catch(IOException e) {
       // figure out later
       throw new RuntimeException(e);
@@ -146,12 +158,12 @@ public class ViziVault {
   }
 
   public void purge(Entity entity) {
-    delete(String.format("/users/{id}/data", entity.getId()));
+    delete(String.format("/users/%s/data", entity.getId()));
     entity.purge(); // need to figure out visibility here...
   }
 
   public void remove(Entity entity, String attributeKey) {
-    delete(String.format("/users/{id}/attributes/{key}", entity.getId(), attributeKey));
+    delete(String.format("/users/%s/attributes/%s", entity.getId(), attributeKey));
     entity.clearAttribute(attributeKey);
   }
 
