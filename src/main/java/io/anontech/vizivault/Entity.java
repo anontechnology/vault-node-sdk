@@ -79,7 +79,7 @@ public class Entity {
     changedAttributes.add(attribute);
   }
 
-  public Object getAttribute(String attributeKey) {
+  public Attribute getAttribute(String attributeKey) {
     return attributes.get(attributeKey);
   }
 

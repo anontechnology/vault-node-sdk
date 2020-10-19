@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 
 import lombok.Data;
 
@@ -30,8 +29,10 @@ public class Attribute {
   private Date modifiedDate;
 
   public <T> T getValueAs(Class<T> valueClass) {
-    return null; 
-    // TODO figure out what Gson defaults to ... might have to coerce to jsonelement when reading?
+    if(valueClass.isAssignableFrom(value.getClass())){
+      return valueClass.cast(value);
+    }
+    return gson.fromJson(gson.toJsonTree(value), valueClass);
   }
   
 }
