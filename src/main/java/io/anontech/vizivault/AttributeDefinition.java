@@ -16,13 +16,18 @@ import io.anontech.vizivault.schema.SchemaIgnore;
 import io.anontech.vizivault.schema.SchemaOverride;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 import lombok.Setter;
 
 @Data
 public class AttributeDefinition {
 
+  @Getter(AccessLevel.NONE)
+  @Setter(AccessLevel.NONE)
   private String key;
+
   private String name;
+
   private String hint;
   private boolean repeatable;
   private boolean indexed;
@@ -34,6 +39,11 @@ public class AttributeDefinition {
 
   public void setSchema(PrimitiveSchema schema) {
     this.schema = schema;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+    this.key = name;
   }
 
   private void addFieldSchema(JsonObject schemaObject, Field f) {    
