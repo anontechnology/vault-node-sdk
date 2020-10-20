@@ -136,8 +136,13 @@ public class ViziVault {
   }
 
   public Entity findByEntity(String entityId) {
-    List<Attribute> data = gson.fromJson(getWithDecryptionKey(String.format("/users/%s/attributes", entityId)).get("data"), new TypeToken<List<Attribute>>(){}.getType());
+    List<Attribute> data = gson.fromJson(getWithDecryptionKey(String.format("/entities/%s/attributes", entityId)).get("data"), new TypeToken<List<Attribute>>(){}.getType());
     return new Entity(data, entityId);
+  }
+
+  public User findByUser(String entityId) {
+    List<Attribute> data = gson.fromJson(getWithDecryptionKey(String.format("/users/%s/attributes", entityId)).get("data"), new TypeToken<List<Attribute>>(){}.getType());
+    return new User(data, entityId);
   }
 
   public void save(Entity entity) {
