@@ -176,11 +176,11 @@ public class ViziVault {
     post("/attributes", attribute);
   }
 
-  public AttributeDefinition getAttribute(String attributeKey) {
+  public AttributeDefinition getAttributeDefinition(String attributeKey) {
     return gson.fromJson(getWithDecryptionKey(String.format("/attributes/%s", attributeKey)), AttributeDefinition.class);
   }
 
-  public List<AttributeDefinition> getAttributes() {
+  public List<AttributeDefinition> getAttributeDefinitions() {
     return gson.fromJson(getWithDecryptionKey(String.format("/attributes/")), new TypeToken<List<AttributeDefinition>>(){}.getType());
   }
 
@@ -196,6 +196,16 @@ public class ViziVault {
     return gson.fromJson(getWithDecryptionKey(String.format("/attributes/")), new TypeToken<List<Tag>>(){}.getType());
   }
 
+  public boolean deleteTag(String tag) {
+    try {
+      delete(String.format("/tags/%s", tag));
+      return true;
+    } catch(VaultException e) {
+      // Throwing and then immediately catching an exception is kind of hacky - might want to make the api return boolean instead
+      return false;
+    }
+  }
+
   public void storeRegulation(Regulation regulation) {
     post("/regulations", regulation);
   }
@@ -206,6 +216,5 @@ public class ViziVault {
 
   public Attribute getDataPoint(String dataPointId) {
     return gson.fromJson(getWithDecryptionKey(String.format("/data/%s", dataPointId)), Attribute.class);
-    // TODO error handling
   }
 }
