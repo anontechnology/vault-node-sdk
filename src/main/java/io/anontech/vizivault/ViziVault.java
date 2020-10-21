@@ -180,12 +180,20 @@ public class ViziVault {
     return gson.fromJson(getWithDecryptionKey(String.format("/attributes/%s", attributeKey)), AttributeDefinition.class);
   }
 
-  public AttributeDefinition getAttributes() {
+  public List<AttributeDefinition> getAttributes() {
     return gson.fromJson(getWithDecryptionKey(String.format("/attributes/")), new TypeToken<List<AttributeDefinition>>(){}.getType());
   }
 
   public void storeTag(Tag tag) {
-    // ...
+    post("/tags", tag);
+  }
+
+  public Tag getTag(String tag) {
+    return gson.fromJson(getWithDecryptionKey(String.format("/tags/%s", tag)), Tag.class);
+  }
+
+  public List<Tag> getTags() {
+    return gson.fromJson(getWithDecryptionKey(String.format("/attributes/")), new TypeToken<List<Tag>>(){}.getType());
   }
 
   public void storeRegulation(Regulation regulation) {

@@ -46,6 +46,10 @@ public class Entity {
   @Setter
   private String id;
 
+  @Getter
+  @Setter
+  private List<String> tags;
+
   void purge() {
     attributes.clear();
   }

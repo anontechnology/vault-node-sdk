@@ -34,6 +34,8 @@ public class AttributeDefinition {
   private Date createdDate;
   private Date modifiedDate;
 
+  private List<String> tags;
+
   @Setter(AccessLevel.NONE)
   private Object schema;
 

@@ -24,6 +24,8 @@ public class Attribute {
   
   private List<String> regulations;
 
+  private List<Tag> tags;
+
   private Date createdDate;
 
   private Date modifiedDate;
