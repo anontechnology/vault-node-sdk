@@ -54,10 +54,6 @@ public class Entity {
     attributes.clear();
   }
 
-  void clearAttribute(String attributeKey) {
-    attributes.remove(attributeKey);
-  }
-
   Set<Attribute> getChangedAttributes() {
     return changedAttributes;
   }
@@ -96,7 +92,7 @@ public class Entity {
     return attributes.values().stream().collect(Collectors.toList());
   }
 
-  public void deleteAttribute(String attributeKey) {
+  public void clearAttribute(String attributeKey) {
     attributes.remove(attributeKey);
     deletedAttributes.add(attributeKey);
   }

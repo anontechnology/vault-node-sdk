@@ -136,12 +136,12 @@ public class ViziVault {
   }
 
   public Entity findByEntity(String entityId) {
-    List<Attribute> data = gson.fromJson(getWithDecryptionKey(String.format("/entities/%s/attributes", entityId)).get("data"), new TypeToken<List<Attribute>>(){}.getType());
+    List<Attribute> data = gson.fromJson(getWithDecryptionKey(String.format("/entities/%s/attributes", entityId)), new TypeToken<List<Attribute>>(){}.getType());
     return new Entity(data, entityId);
   }
 
   public User findByUser(String entityId) {
-    List<Attribute> data = gson.fromJson(getWithDecryptionKey(String.format("/users/%s/attributes", entityId)).get("data"), new TypeToken<List<Attribute>>(){}.getType());
+    List<Attribute> data = gson.fromJson(getWithDecryptionKey(String.format("/users/%s/attributes", entityId)), new TypeToken<List<Attribute>>(){}.getType());
     return new User(data, entityId);
   }
 
@@ -165,11 +165,6 @@ public class ViziVault {
   public void purge(Entity entity) {
     delete(String.format("/users/%s/data", entity.getId()));
     entity.purge(); // need to figure out visibility here...
-  }
-
-  public void remove(Entity entity, String attributeKey) {
-    delete(String.format("/users/%s/attributes/%s", entity.getId(), attributeKey));
-    entity.clearAttribute(attributeKey);
   }
 
   public void storeAttributeDefinition(AttributeDefinition attribute) {
@@ -211,7 +206,7 @@ public class ViziVault {
   }
 
   public List<Attribute> search(SearchRequest searchRequest){
-    return gson.fromJson(post("/data/search", searchRequest).get("data"), new TypeToken<List<Attribute>>(){}.getType());
+    return gson.fromJson(post("/data/search", searchRequest), new TypeToken<List<Attribute>>(){}.getType());
   }
 
   public Attribute getDataPoint(String dataPointId) {
