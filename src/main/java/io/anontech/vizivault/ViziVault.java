@@ -176,7 +176,7 @@ public class ViziVault {
   }
 
   public List<AttributeDefinition> getAttributeDefinitions() {
-    return gson.fromJson(getWithDecryptionKey(String.format("/attributes/")), new TypeToken<List<AttributeDefinition>>(){}.getType());
+    return gson.fromJson(getWithDecryptionKey("/attributes/"), new TypeToken<List<AttributeDefinition>>(){}.getType());
   }
 
   public void storeTag(Tag tag) {

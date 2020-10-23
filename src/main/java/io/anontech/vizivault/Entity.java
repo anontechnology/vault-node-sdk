@@ -62,15 +62,15 @@ public class Entity {
     return deletedAttributes;
   }
 
-  public void setAttribute(String attributeKey, Object value) {
+  public void addAttribute(String attributeKey, Object value) {
     Attribute attribute = new Attribute();
     attribute.setAttribute(attributeKey);
     attribute.setValue(value);
 
-    setAttribute(attribute);
+    addAttribute(attribute);
   }
 
-  public void setAttribute(Attribute attribute) {
+  public void addAttribute(Attribute attribute) {
     String attributeKey = attribute.getAttribute();
     if(repeatedAttributes.containsKey(attributeKey)){
       repeatedAttributes.get(attributeKey).add(attribute);
