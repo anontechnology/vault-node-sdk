@@ -54,7 +54,7 @@ public class ViziVault {
     return this;
   }
 
-  private JsonObject post(String url, Object body, Headers headers) {
+  private JsonElement post(String url, Object body, Headers headers) {
     try {
       Response response = httpClient.newCall(
           new Request.Builder()
@@ -70,14 +70,14 @@ public class ViziVault {
         throw new VaultException(responseData.get("message").getAsString(), response.code());
       }
 
-      return responseData;
+      return responseData.get("data");
     } catch(IOException e) {
       // figure out later
       throw new RuntimeException(e);
     }
   }
 
-  private JsonObject get(String url, Headers headers) {
+  private JsonElement get(String url, Headers headers) {
     try {
       Response response = httpClient.newCall(
           new Request.Builder()
@@ -93,14 +93,14 @@ public class ViziVault {
         throw new VaultException(responseData.get("message").getAsString(), response.code());
       }
 
-      return responseData;
+      return responseData.get("data");
     } catch(IOException e) {
       // figure out later
       throw new RuntimeException(e);
     }
   }
   
-  private JsonObject delete(String url) {
+  private JsonElement delete(String url) {
     try {
       Response response = httpClient.newCall(
           new Request.Builder()
@@ -116,22 +116,22 @@ public class ViziVault {
             throw new VaultException(responseData.get("message").getAsString(), response.code());
           }
     
-          return responseData;
+          return responseData.get("data");
     } catch(IOException e) {
       // figure out later
       throw new RuntimeException(e);
     }
   }
 
-  private JsonObject post(String url, Object body) {
+  private JsonElement post(String url, Object body) {
     return post(url, body, new Headers.Builder().build());
   }
 
-  private JsonObject getWithDecryptionKey(String url) {
+  private JsonElement getWithDecryptionKey(String url) {
     return get(url, new Headers.Builder().add("X-Decryption-Key", decryptionKey).build());
   }
 
-  private JsonObject postWithEncryptionKey(String url, Object body) {
+  private JsonElement postWithEncryptionKey(String url, Object body) {
     return post(url, body, new Headers.Builder().add("X-Encryption-Key", encryptionKey).build());
   }
 
@@ -188,7 +188,7 @@ public class ViziVault {
   }
 
   public List<Tag> getTags() {
-    return gson.fromJson(getWithDecryptionKey(String.format("/attributes/")), new TypeToken<List<Tag>>(){}.getType());
+    return gson.fromJson(getWithDecryptionKey("/tags/"), new TypeToken<List<Tag>>(){}.getType());
   }
 
   public boolean deleteTag(String tag) {
