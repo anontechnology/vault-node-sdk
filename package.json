@@ -1,0 +1,15 @@
+{
+  "name": "noxJavascriptClient",
+  "version": "0.10",
+  "description": "A Javascript SDK for abstracting and simplifying transactions between the Anontech Nox REST API.",
+  "license": "Unlicense",
+  "main": "src/ViziVault.ts",
+  "scripts": {
+    "test": "mocha --recursive"
+  },
+  "browser": {
+    "fs": false
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -39,11 +39,11 @@ export class ViziVault {
   }
 
   public setHeaders() : Headers {
-    let record = {};
+    const requestHeaders = new Headers();
     this.headersDict.forEach((value, key) => {
-      record[key] = value;
+      requestHeaders.set(key, value);
     });
-    return new Headers(record);
+    return requestHeaders;
   }
 
   private async post(url: string, body: any, headers?: Headers): Promise<string> {
@@ -188,6 +188,17 @@ export class ViziVault {
     public async storeRegulation(regulation: Regulation): Promise<void> {
       await this.post("/regulations", regulation);
     }
+
+    
+  public async getAllRegulations(): Promise<Array<Regulation>> {
+    const data = await this.getWithDecryptionKey("/regulations/");
+    return JSON.parse(data);
+  }
+
+  public async getRegulations(key: string): Promise<Regulation> {
+    const data = await this.getWithDecryptionKey("/regulations/" + key);
+    return JSON.parse(data);
+  }
 
     public async search(searchRequest: SearchRequest): Promise<Array<Attribute>> {
       const data = await this.post("/data/search", searchRequest);

@@ -1,0 +1,1 @@
+Run tsc --build --clean to build the project
