@@ -1,1 +1,1 @@
-Run tsc --build --clean to build the project
+This is the javascript SDK.

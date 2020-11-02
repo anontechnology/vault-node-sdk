@@ -1,5 +1,5 @@
 {
-  "name": "noxJavascriptClient",
+  "name": "javascript-client-2",
   "version": "0.1.0",
   "description": "A Javascript SDK for abstracting and simplifying transactions between the Anontech Nox REST API.",
   "license": "Unlicense",
