@@ -1,28 +1,25 @@
 import { Attribute } from "./Attribute";
 
 export class Entity {
-  attributes: Map<string, Attribute>;
-  repeatedAttributes: Map<string, Array<Attribute>>;
-  changedAttributes: Array<Attribute>;
-  deletedAttributes: Array<string>;
-  id: string;
-  tags: Array<string>;
+  private attributes: Map<string, Attribute>;
+  private repeatedAttributes: any;
+  private changedAttributes: Array<Attribute>;
+  private deletedAttributes: Array<string>;
+  private id: string;
+  private tags: Array<string>;
 
   public constructor(data: Array<Attribute>, id: string) {
-    if (this.attributes === undefined) { this.attributes = null; }
-    if (this.repeatedAttributes === undefined) { this.repeatedAttributes = null; }
-    if (this.changedAttributes === undefined) { this.changedAttributes = null; }
-    if (this.deletedAttributes === undefined) { this.deletedAttributes = null; }
-    if (this.id === undefined) { this.id = null; }
-    if (this.tags === undefined) { this.tags = null; }
     this.id = id;
     this.changedAttributes = [];
     this.attributes = new Map();
+    this.repeatedAttributes = new Map<string, Array<Attribute>>();
+    this.deletedAttributes = new Array();
+    this.tags = new Array();
 
     data.forEach((element) => {
-      const attributeKey = element.attribute;
+      const attributeKey = element.getAttribute();
       if (this.attributes.has(attributeKey)){
-        let repeatableValues: Array<Attribute>;
+        let repeatableValues: any = new Array<Attribute>();
         if (this.repeatedAttributes.has(attributeKey)){
           repeatableValues = this.repeatedAttributes.get(attributeKey);
         } else {
@@ -40,6 +37,22 @@ export class Entity {
     this.attributes.clear();
   }
 
+  public getId(): string {
+    return this.id;
+  }
+
+  public setId(id: string): void {
+    this.id = id;
+  }
+
+  public getTags(): Array<string> {
+    return this.tags;
+  }
+
+  public setTags(tags: Array<string>): void {
+    this.tags = tags;
+  }
+
   clearAttribute(attributeKey: string) {
     this.attributes.delete(attributeKey);
   }
@@ -54,14 +67,14 @@ export class Entity {
 
   public buildAttribute(attributeKey: string, value: any) {
     let attribute = new Attribute();
-    attribute.attribute = attributeKey;
-    attribute.value = value;
+    attribute.setAttribute(attributeKey);
+    attribute.setValue(value);
 
     this.setAttribute(attribute);
   }
 
   public setAttribute(attribute: Attribute) {
-    const attributeKey = attribute.attribute;
+    const attributeKey = attribute.getAttribute();
     if(this.repeatedAttributes.has(attributeKey)){
       this.repeatedAttributes.get(attributeKey).push(attribute);
     } else {
@@ -70,7 +83,7 @@ export class Entity {
     this.changedAttributes.push(attribute);
   }
 
-  public getAttribute(attributeKey: string): Array<Attribute> {
+  public getAttribute(attributeKey: string): any {
     if (this.attributes.has(attributeKey)) {
       return new Array(this.attributes.get(attributeKey));
     } else {

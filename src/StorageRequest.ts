@@ -6,5 +6,6 @@ export class StorageRequest {
 
   public constructor(dataPoints: Array<Attribute>) {
     this.dataPoints = dataPoints;
+    this.origin = "";
   }
 }

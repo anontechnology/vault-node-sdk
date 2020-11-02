@@ -9,6 +9,22 @@ export class TagRule extends RegulationRule {
     super("attribute");
     this.attributes = new Array();
   }
+
+  public getOperator(): TagListOperator {
+    return this.operator;
+  }
+
+  public setOperator(attributes: Array<string>): void {
+    this.attributes = attributes;
+  }
+
+  public setAttributes(operator: TagListOperator): void {
+    this.operator = operator;
+  }
+
+  public getAttributes(): Array<string> {
+    return this.attributes;
+  }
 }
 
 export enum TagListOperator {

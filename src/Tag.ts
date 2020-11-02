@@ -1,12 +1,35 @@
 export class Tag {
-  name: string;
-  createdDate: Date;
-  modifiedDate: Date;
+  private name: string;
+  private createdDate: Date;
+  private modifiedDate: Date;
 
   public constructor(name: string) {
-    if (this.name === undefined) { this.name = null; }
-    if (this.createdDate === undefined) { this.createdDate = null; }
-    if (this.modifiedDate === undefined) { this.modifiedDate = null; }
     this.name = name;
+    this.createdDate = new Date();
+    this.modifiedDate = new Date();
+  }
+
+  public getName(): string {
+    return this.name;
+  }
+
+  public setName(name: string): void {
+    this.name = name;
+  }
+
+  public getCreatedDate(): Date {
+    return this.createdDate;
+  }
+
+  public setCreatedDate(createdDate: Date): void {
+    this.createdDate = createdDate;
+  }
+
+  public getModifiedDate(): Date {
+    return this.modifiedDate;
+  }
+
+  public setModifiedDate(modifiedDate: Date): void {
+    this.modifiedDate = modifiedDate;
   }
 }

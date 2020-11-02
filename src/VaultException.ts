@@ -1,21 +1,19 @@
 export class VaultException extends Error {
-  static serialVersionUID: number = 1;
-  message: string;
-  statusCode: number;
+  private statusCode: number;
+
+  public message: string;
 
   public constructor(message: string, status: number) {
     super();
-    if (this.message === undefined) { this.message = null; }
-    if (this.statusCode === undefined) { this.statusCode = 0; }
     this.message = message;
     this.statusCode = status;
   }
 
-  public getMessage(): string {
-    return this.message;
+  public getStatusCode(): number {
+    return this.statusCode;
   }
 
-  public getStatus(): number {
-    return this.statusCode;
+  public setStatusCode(statusCode: number): void {
+    this.statusCode = statusCode;
   }
 }

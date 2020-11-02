@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "commonjs",
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": false,
     "lib": ["es5", "es6", "dom", "es2015"],
-    "target": "es6"
+    "target": "es6",
+    "allowJs": true,                          
+    "outDir": "build",
+    "rootDir": "src",
+    "strict": true
   },
   "include": ["src/*"],
   "exclude": ["node_modules", "**/*.spec.ts"]

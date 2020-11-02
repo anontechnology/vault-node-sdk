@@ -1,22 +1,27 @@
 
 export class SearchRequest {
-  regulations: Array<string>;
-  values: Array<ValueSearchRequest>;
-  attributes: Array<string>;
-  sensitivity: string;
-  userId: string;
-  country: string;
-  subdivision: string;
-  city: string;
-  minCreatedDate: Date;
-  maxCreatedDate: Date;
-  minModifiedDate: Date;
-  maxModifiedDate: Date;
+  private regulations: Array<string>;
+  private values: Array<ValueSearchRequest>;
+  private attributes: Array<string>;
+  private sensitivity: string;
+  private userId: string;
+  private country: string;
+  private subdivision: string;
+  private city: string;
+  private minCreatedDate?: Date;
+  private maxCreatedDate?: Date;
+  private minModifiedDate?: Date;
+  private maxModifiedDate?: Date;
 
   public constructor(attribute?: any, value?: any) {
     this.regulations = new Array();
     this.values = new Array();
     this.attributes = new Array();
+    this.sensitivity = "";
+    this.userId = "";
+    this.country = "";
+    this.subdivision = "";
+    this.city = "";
 
     this.addValueQuery(attribute, value);
   }

@@ -2,9 +2,17 @@ import { RegulationRule } from "./RegulationRule";
 
 export class ConjunctiveRule extends RegulationRule {
   private constraints: Array<RegulationRule>;
-  
-  constructor(){
+
+  constructor() {
     super("all");
+  }
+
+  public getConstraints(): Array<RegulationRule> {
+    return this.constraints;
+  }
+
+  public setConstraints(constraints: Array<RegulationRule>): void {
+    this.constraints = constraints;
   }
 
   public addRule(rule: RegulationRule): void {

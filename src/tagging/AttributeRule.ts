@@ -5,9 +5,25 @@ export class AttributeRule extends RegulationRule {
   private operator: AttributeListOperator;
   private attributes: Array<String>;
 
-  constructor(){
+  constructor() {
     super("attribute");
     this.attributes = new Array();
+  }
+
+  public getOperator(): AttributeListOperator {
+    return this.operator;
+  }
+
+  public getAttributes(): Array<String> {
+    return this.attributes;
+  }
+
+  public setOperator(operator: AttributeListOperator): void {
+    this.operator = operator;
+  }
+
+  public setAttributes(attributes: Array<String>): void {
+    this.attributes = attributes;
   }
 }
 

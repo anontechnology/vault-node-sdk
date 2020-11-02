@@ -5,8 +5,32 @@ export class UserRule extends RegulationRule {
   private value: string;
   private predicate: UserValuePredicate;
 
-  constructor(){
+  constructor() {
     super("user");
+  }
+
+  public getAttribute(): string {
+    return this.attribute;
+  }
+
+  public setValue(value: string): void {
+    this.value = value;
+  }
+
+  public getValue(): string {
+    return this.value;
+  }
+
+  public setAttribute(attribute: string): void {
+    this.attribute = attribute;
+  }
+
+  public getPredicate(): UserValuePredicate {
+    return this.predicate;
+  }
+
+  public setPredicate(predicate: UserValuePredicate): void {
+    this.predicate = predicate;
   }
 }
 
