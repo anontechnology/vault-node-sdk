@@ -195,12 +195,12 @@ export class ViziVault {
   }
 
 
-  public async getAllRegulations(): Promise<Array<Regulation>> {
+  public async getRegulations(): Promise<Array<Regulation>> {
     const data = await this.getWithDecryptionKey("/regulations/");
     return JSON.parse(data);
   }
 
-  public async getRegulations(key: string): Promise<Regulation> {
+  public async getRegulation(key: string): Promise<Regulation> {
     const data = await this.getWithDecryptionKey("/regulations/" + key);
     return JSON.parse(data);
   }
