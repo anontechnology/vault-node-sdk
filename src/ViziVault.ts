@@ -1,3 +1,4 @@
+import Axios from 'axios';
 import { Tag } from "./Tag";
 import { Attribute } from "./Attribute";
 import { Entity } from "./Entity";
@@ -5,8 +6,9 @@ import { Regulation } from "./Regulation";
 import { SearchRequest } from "./SearchRequest";
 import { User } from "./User";
 import { AttributeDefinition } from "./AttributeDefinition";
-import { VaultException } from "./VaultException";
 import { StorageRequest } from "./StorageRequest";
+
+// TODO Readd in throwing VaultException when requests fail
 
 export class ViziVault {
   private baseUrl?: URL;
@@ -40,94 +42,79 @@ export class ViziVault {
     return this;
   }
 
-  public setHeaders(): Headers {
-    const requestHeaders = new Headers();
+  public setHeaders(): Map<string, string> {
+    const requestHeaders = new Map<string, string>();
     this.headersDict.forEach((value, key) => {
       requestHeaders.set(key, value);
     });
     return requestHeaders;
   }
 
-  private async post(url: string, body: any, headers?: Headers): Promise<string> {
+  private async post(url: string, body: any, headers?: Map<string, string>): Promise<any> {
     try {
       if (headers === null) {
         headers = this.setHeaders();
       }
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await fetch(fullUrl.toString(), {
-        method: 'POST',
-        body: body,
-        headers: headers
-      });
+      const response = await Axios.post(fullUrl.toString(), body, { headers });
 
-      if (!response.ok) {
-        throw new VaultException(response.statusText, response.status);
-      }
-      return response.json();
+      return response;
     } catch (e) {
       console.log(e);
       return "";
     }
   }
 
-  private async get(url: string, headers: Headers): Promise<string> {
+  private async get(url: string, headers: Map<string, string>): Promise<any> {
     try {
       if (headers === null) {
         headers = this.setHeaders();
       }
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await fetch(fullUrl.toString(), {
-        method: 'GET',
-        headers: headers
-      });
+      const { data } = await Axios.get(fullUrl.toString(), { headers });
 
-      if (!response.ok) {
-        throw new VaultException(response.statusText, response.status);
-      }
-      return response.json();
+      return data;
     } catch (e) {
       console.log(e);
       return "";
     }
   }
 
-  private async delete(url: string): Promise<string> {
+  private async delete(url: string): Promise<any> {
     try {
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await fetch(fullUrl.toString(), {
-        method: 'DELETE',
-        headers: this.setHeaders()
-      });
+      const response = await Axios.get(fullUrl.toString(), { headers: this.headersDict });
 
-      if (!response.ok) {
-        throw new VaultException(response.statusText, response.status);
-      }
-      return response.json();
+      return response;
     } catch (e) {
       console.log(e);
       return "";
     }
   }
 
-  private async getWithDecryptionKey(url: string): Promise<string> {
-    return await this.get(url, new Headers({ "X-Decryption-Key": this.decryptionKey }));
+  private getWithDecryptionKey(url: string): Promise<any> {
+    return this.get(url, new Map([
+      ["X-Decryption-Key", this.decryptionKey]
+    ]));
   }
 
-  private async postWithEncryptionKey(url: string, body: any): Promise<string> {
-    return await this.post(url, body, new Headers({ "X-Encryption-Key": this.encryptionKey }));
+  private postWithEncryptionKey(url: string, body: any): Promise<any> {
+    return this.get(url, new Map([
+      ["X-Encryption-Key", this.encryptionKey]
+    ]));
   }
 
   public async findByEntity(entityId: string): Promise<Entity> {
     const data = await this.getWithDecryptionKey("/entities/" + entityId + "/attributes");
-    return new Entity(JSON.parse(data), entityId);
+    return new Entity(data, entityId);
   }
 
   public async findByUser(entityId: string): Promise<User> {
     const data = await this.getWithDecryptionKey("/users/" + entityId + "/attributes");
-    return new User(JSON.parse(data), entityId);
+    return new User(data, entityId);
   }
 
   public async save(entity: Entity): Promise<void> {
@@ -159,12 +146,12 @@ export class ViziVault {
 
   public async getAttributeDefinition(attributeKey: string): Promise<AttributeDefinition> {
     const data = await this.getWithDecryptionKey("/attributes/" + attributeKey);
-    return JSON.parse(data);
+    return data;
   }
 
   public async getAttributeDefinitions(): Promise<Array<AttributeDefinition>> {
     const data = await this.getWithDecryptionKey("/attributes/");
-    return JSON.parse(data);
+    return data;
   }
 
   public async storeTag(tag: Tag): Promise<void> {
@@ -173,12 +160,11 @@ export class ViziVault {
 
   public async getTag(tag: string): Promise<Tag> {
     const data = await this.getWithDecryptionKey("/tags/" + tag);
-    return JSON.parse(data);
+    return data;
   }
 
   public async getTags(): Promise<Array<Tag>> {
-    const data = await this.getWithDecryptionKey("/attributes/");
-    return JSON.parse(data);
+    return this.getWithDecryptionKey("/attributes/");
   }
 
   public async deleteTag(tag: string): Promise<boolean> {
@@ -197,21 +183,21 @@ export class ViziVault {
 
   public async getRegulations(): Promise<Array<Regulation>> {
     const data = await this.getWithDecryptionKey("/regulations/");
-    return JSON.parse(data);
+    return data;
   }
 
   public async getRegulation(key: string): Promise<Regulation> {
     const data = await this.getWithDecryptionKey("/regulations/" + key);
-    return JSON.parse(data);
+    return data;
   }
 
   public async search(searchRequest: SearchRequest): Promise<Array<Attribute>> {
     const data = await this.post("/data/search", searchRequest);
-    return JSON.parse(data);
+    return data;
   }
 
   public async getDataPoint(dataPointId: string): Promise<Attribute> {
     const data = await this.getWithDecryptionKey("/data/" + dataPointId);
-    return JSON.parse(data);
+    return data;
   }
 }
