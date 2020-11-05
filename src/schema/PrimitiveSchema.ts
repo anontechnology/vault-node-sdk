@@ -13,9 +13,3 @@ export class PrimitiveSchema {
     this.string = string;
   }
 }
-
-export namespace PrimitiveSchema {
-  export enum PrimitiveSchema {
-    String, Integer, Boolean, Float, File, Date
-  }
-}

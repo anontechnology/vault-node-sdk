@@ -4,7 +4,7 @@ export class TagRule extends RegulationRule {
 
   private operator: TagListOperator;
   private attributes: Array<string>;
-  
+
   constructor(){
     super("attribute");
     this.attributes = new Array();
