@@ -5,18 +5,24 @@ export class Regulation {
   private name: string;
   private url: string;
   private rule?: RegulationRule;
-  private createdDate: Date;
-  private modifiedDate: Date;
+  private createdDate?: Date;
+  private modifiedDate?: Date;
 
   public constructor() {
-    this.createdDate = new Date();
-    this.modifiedDate = new Date();
     this.key = "";
     this.name = "";
     this.url = "";
   }
 
-  public getCreatedDate(): Date {
+  public getKey(): string {
+    return this.key;
+  }
+
+  public setKey(key: string): void {
+    this.key = key;
+  }
+
+  public getCreatedDate(): Date | undefined {
     return this.createdDate;
   }
 
@@ -24,7 +30,7 @@ export class Regulation {
     this.createdDate = createdDate;
   }
 
-  public getModifiedDate(): Date {
+  public getModifiedDate(): Date | undefined {
     return this.modifiedDate;
   }
 
