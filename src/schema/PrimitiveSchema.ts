@@ -13,3 +13,7 @@ export class PrimitiveSchema {
     this.string = string;
   }
 }
+
+export enum PrimitiveSchemaType {
+  STRING = "string", INT = "int", BOOLEAN = "boolean", FILE = "file", FLOAT = "float", DATE = "date"
+}

@@ -7,19 +7,18 @@ import { SearchRequest } from "./SearchRequest";
 import { User } from "./User";
 import { AttributeDefinition } from "./AttributeDefinition";
 import { StorageRequest } from "./StorageRequest";
-
-// TODO Readd in throwing VaultException when requests fail
+import { VaultException } from './VaultException';
 
 export class ViziVault {
   private baseUrl?: URL;
-  private headersDict: Map<string, string>;
   private encryptionKey: string;
   private decryptionKey: string;
+  private apiKey: string;
 
   public constructor() {
-    this.headersDict = new Map();
     this.encryptionKey = "";
     this.decryptionKey = "";
+    this.apiKey = "";
   }
 
   public withBaseURL(url: URL): ViziVault {
@@ -28,54 +27,91 @@ export class ViziVault {
   }
 
   public withApiKey(apiKey: string): ViziVault {
-    this.headersDict.set("Authorization", "Bearer " + apiKey);
+    this.apiKey = apiKey;
     return this;
   }
 
   public withEncryptionKey(encryptionKey: string): ViziVault {
-    this.headersDict.set("X-Encryption-Key", encryptionKey);
+    this.encryptionKey = encryptionKey;
     return this;
   }
 
   public withDecryptionKey(decryptionKey: string): ViziVault {
-    this.headersDict.set("X-Decryption-Key", decryptionKey);
+    this.decryptionKey = decryptionKey;
     return this;
   }
 
-  public setHeaders(): Map<string, string> {
-    const requestHeaders = new Map<string, string>();
-    this.headersDict.forEach((value, key) => {
-      requestHeaders.set(key, value);
-    });
-    return requestHeaders;
-  }
-
-  private async post(url: string, body: any, headers?: Map<string, string>): Promise<any> {
-    try {
-      if (headers === null) {
-        headers = this.setHeaders();
+  private async post(url: string, body: any, encrypt?: boolean): Promise<any> {
+    Axios.interceptors.response.use(
+      res => {
+        return res;
+      },
+      err => {
+        console.log(err);
+        let response = err.response;
+        let message = "Something went wrong."
+        let status = 418;
+        if (response) {
+          status = response.status;
+          if (response.data) {
+            message = response.data.message;
+          }
+        }
+        return Promise.reject(new VaultException(message, status));
       }
+    );
+    try {
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await Axios.post(fullUrl.toString(), body, { headers });
-
-      return response;
+      if (encrypt) {
+        const response = await Axios.post(fullUrl.toString(), body, {
+          headers: {
+            'X-Encryption-Key': this.encryptionKey
+          }
+        });
+  
+        return response;
+      } else {
+        const response = await Axios.post(fullUrl.toString(), body);
+  
+        return response;
+      }
     } catch (e) {
       console.log(e);
-      return "";
     }
   }
 
-  private async get(url: string, headers: Map<string, string>): Promise<any> {
-    try {
-      if (headers === null) {
-        headers = this.setHeaders();
+  private async get(url: string, decrypt?: boolean): Promise<any> {
+    Axios.interceptors.response.use(
+      res => res,
+      err => {
+        console.log(err);
+        let response = err.response;
+        let message = "Something went wrong."
+        let status = 418;
+        if (response) {
+          status = response.status;
+          if (response.data) {
+            message = response.data.message;
+          }
+        }
+        return Promise.reject(new VaultException(message, status));
       }
+    );
+    try {
       const fullUrl = new URL(this.baseUrl + url);
-
-      const { data } = await Axios.get(fullUrl.toString(), { headers });
-
-      return data;
+      if (decrypt) {
+        const { data } = await Axios.get(fullUrl.toString(), {
+          headers: {
+            'X-Decryption-Key': this.decryptionKey
+          }
+        });
+  
+        return data;
+      } else {
+        const { data } = await Axios.get(fullUrl.toString());
+        return data;
+      }
     } catch (e) {
       console.log(e);
       return "";
@@ -83,10 +119,25 @@ export class ViziVault {
   }
 
   private async delete(url: string): Promise<any> {
+    Axios.interceptors.response.use(
+      res => res,
+      err => {
+        let response = err.response;
+        let message = "Something went wrong."
+        let status = 418;
+        if (response) {
+          status = response.status;
+          if (response.data) {
+            message = response.data.message;
+          }
+        }
+        return Promise.reject(new VaultException(message, status));
+      }
+    );
     try {
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await Axios.get(fullUrl.toString(), { headers: this.headersDict });
+      const response = await Axios.delete(fullUrl.toString());
 
       return response;
     } catch (e) {
@@ -96,38 +147,56 @@ export class ViziVault {
   }
 
   private getWithDecryptionKey(url: string): Promise<any> {
-    return this.get(url, new Map([
-      ["X-Decryption-Key", this.decryptionKey]
-    ]));
+    return this.get(url, true);
   }
 
   private postWithEncryptionKey(url: string, body: any): Promise<any> {
-    return this.get(url, new Map([
-      ["X-Encryption-Key", this.encryptionKey]
-    ]));
+    return this.post(url, body, true);
   }
 
-  public async findByEntity(entityId: string): Promise<Entity> {
-    const data = await this.getWithDecryptionKey("/entities/" + entityId + "/attributes");
-    return new Entity(data, entityId);
+  public async findByEntity(entityId: string): Promise<any> {
+    await this.getWithDecryptionKey("/entities/" + entityId + "/attributes").then((data) => {
+      this.get("/entities/" + entityId).then((entity) => {
+        data.array.forEach((attribute: Attribute) => {
+          console.log(attribute);
+          entity.addAttributeWithoutPendingChange(attribute);
+        });
+
+        return entity;
+      });
+    }); 
   }
 
-  public async findByUser(entityId: string): Promise<User> {
-    const data = await this.getWithDecryptionKey("/users/" + entityId + "/attributes");
-    return new User(data, entityId);
+  public async findByUser(entityId: string): Promise<any> {
+    await this.getWithDecryptionKey("/users/" + entityId + "/attributes").then((data) => {
+      this.get("/users/" + entityId).then((user) => {
+        data.array.forEach((attribute: Attribute) => {
+          console.log(attribute);
+          user.addAttributeWithoutPendingChange(attribute);
+        });
+        
+        return user;
+      });
+    });    
   }
 
   public async save(entity: Entity): Promise<void> {
     entity.getDeletedAttributes().forEach(async (attribute) => {
-      await this.delete("/user/" + entity.getId() + "/attribute/" + attribute);
+      await this.delete("/users/" + entity.getId() + "/attribute/" + JSON.stringify(attribute));
     });
+    entity.setDeletedAttributes([]);
 
-    let pointsList = new Array();
-    entity.getChangedAttributes().forEach((attribute) => {
-      pointsList.push(attribute);
-    });
+    if (entity.getChangedAttributes().length > 0) {
+      let pointsList = new Array();
+      entity.getChangedAttributes().forEach((attribute) => {
+        pointsList.push(attribute);
+      });
+      console.log('_______________________________________');
+      console.log(pointsList);
+      await this.postWithEncryptionKey("/users/" + entity.getId() + "/attributes", new StorageRequest(pointsList));
+    }
 
-    await this.postWithEncryptionKey("/user/" + entity.getId() + "/attributes", new StorageRequest(pointsList));
+    entity.setChangedAttributes([]);
   }
 
   public async purge(entity: Entity) {
@@ -158,18 +227,18 @@ export class ViziVault {
     await this.post("/tags", tag);
   }
 
-  public async getTag(tag: string): Promise<Tag> {
-    const data = await this.getWithDecryptionKey("/tags/" + tag);
+  public async getTag(tag: Tag): Promise<Tag> {
+    const data = await this.getWithDecryptionKey("/tags/" + tag.getName());
     return data;
   }
 
   public async getTags(): Promise<Array<Tag>> {
-    return this.getWithDecryptionKey("/attributes/");
+    return this.getWithDecryptionKey("/tags/");
   }
 
-  public async deleteTag(tag: string): Promise<boolean> {
+  public async deleteTag(tag: Tag): Promise<boolean> {
     try {
-      await this.delete("/tags/" + tag);
+      await this.delete("/tags/" + tag.getName());
       return true;
     } catch (e) {
       return false;
@@ -192,7 +261,7 @@ export class ViziVault {
   }
 
   public async search(searchRequest: SearchRequest): Promise<Array<Attribute>> {
-    const data = await this.post("/data/search", searchRequest);
+    const data = await this.post("/search", searchRequest);
     return data;
   }
 

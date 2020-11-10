@@ -29,6 +29,14 @@ export class SearchRequest {
   public addValueQuery(attribute: string, value: string) {
     this.values.push(new ValueSearchRequest(attribute, value));
   }
+
+  getAttributes(): Array<string> {
+    return this.attributes;
+  }
+
+  setAttributes(): Array<string> {
+    return this.attributes;
+  }
 }
 
 export class ValueSearchRequest {
