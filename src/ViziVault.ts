@@ -8,6 +8,7 @@ import { User } from "./User";
 import { AttributeDefinition } from "./AttributeDefinition";
 import { StorageRequest } from "./StorageRequest";
 import { VaultException } from './VaultException';
+import { EntityDefinition } from './EntityDefinition';
 
 export class ViziVault {
   private baseUrl?: URL;
@@ -186,14 +187,10 @@ export class ViziVault {
     });
     entity.setDeletedAttributes([]);
 
+    await this.post(entity instanceof User ? "/users" : "/entities", new EntityDefinition(entity));
+
     if (entity.getChangedAttributes().length > 0) {
-      let pointsList = new Array();
-      entity.getChangedAttributes().forEach((attribute) => {
-        pointsList.push(attribute);
-      });
-      console.log('_______________________________________');
-      console.log(pointsList);
-      await this.postWithEncryptionKey("/users/" + entity.getId() + "/attributes", new StorageRequest(pointsList));
+      await this.postWithEncryptionKey(`/users/${entity.getId()}/attributes`, new StorageRequest(entity.getChangedAttributes()));
     }
 
     entity.setChangedAttributes([]);
