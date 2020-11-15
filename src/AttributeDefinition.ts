@@ -21,7 +21,7 @@ export class AttributeDefinition {
     this.setSchema(PrimitiveSchemaType.STRING);
   }
 
-  public setSchema(schema: PrimitiveSchemaType) {
+  public setSchema(schema: PrimitiveSchemaType): void {
     this.schema = schema;
   }
 
@@ -33,7 +33,7 @@ export class AttributeDefinition {
     return this.name;
   }
 
-  public setName(name: string) {
+  public setName(name: string): void {
     this.name = name;
     this.key = name;
   }
@@ -42,7 +42,7 @@ export class AttributeDefinition {
     return this.key;
   }
 
-  public setKey(key: string) {
+  public setKey(key: string): void {
     this.key = key;
   }
 
@@ -50,7 +50,7 @@ export class AttributeDefinition {
     return this.hint;
   }
 
-  public setHint(hint: string) {
+  public setHint(hint: string): void {
     this.hint = hint;
   }
 
@@ -58,7 +58,7 @@ export class AttributeDefinition {
     return this.repeatable;
   }
 
-  public setRepeatable(repeatable: boolean) {
+  public setRepeatable(repeatable: boolean): void {
     this.repeatable = repeatable;
   }
 
@@ -66,7 +66,31 @@ export class AttributeDefinition {
     return this.indexed;
   }
 
-  public setIndexed(indexed: boolean) {
+  public setIndexed(indexed: boolean): void {
     this.indexed = indexed;
+  }
+
+  public getCreatedDate(): Date | undefined {
+    return this.createdDate;
+  }
+
+  public setCreatedDate(createdDate: Date): void {
+    this.createdDate = createdDate;
+  }
+
+  public getModifiedDate(): Date | undefined {
+    return this.modifiedDate;
+  }
+
+  public setModifiedDate(modifiedDate: Date): void {
+    this.modifiedDate = modifiedDate;
+  }
+
+  public getTags(): Array<string> {
+    return this.tags;
+  }
+
+  public setTags(tags: Array<string>) {
+    this.tags = tags;
   }
 }
