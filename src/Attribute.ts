@@ -3,7 +3,7 @@ import { Tag } from "./Tag";
 export class Attribute {
   private userId: string;
   private attribute: string;
-  private sensitivity: string;
+  private sensitivity?: string;
   private value: any;
   private regulations: Array<string>;
   private tags: Array<Tag>;
@@ -15,7 +15,6 @@ export class Attribute {
     this.tags = new Array();
     this.userId = "";
     this.attribute = "";
-    this.sensitivity = "";
   }
 
   public getRegulations(): Array<string> {
@@ -50,7 +49,7 @@ export class Attribute {
     this.userId = userId;
   }
 
-  public getSensitivity(): string {
+  public getSensitivity(): string | undefined {
     return this.sensitivity;
   }
 

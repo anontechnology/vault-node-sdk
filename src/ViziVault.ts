@@ -9,6 +9,7 @@ import { AttributeDefinition } from "./AttributeDefinition";
 import { StorageRequest } from "./StorageRequest";
 import { VaultException } from './VaultException';
 import { EntityDefinition } from './EntityDefinition';
+import { PaginatedSearchRequest } from './PaginatedSearchRequest';
 
 export class ViziVault {
   private baseUrl?: URL;
@@ -257,8 +258,8 @@ export class ViziVault {
     return data;
   }
 
-  public async search(searchRequest: SearchRequest): Promise<Array<Attribute>> {
-    const data = await this.post("/search", searchRequest);
+  public async search(searchRequest: SearchRequest, page: number, count: number): Promise<Array<Attribute>> {
+    const data = await this.post("/search", new PaginatedSearchRequest(searchRequest, page, count));
     return data;
   }
 
