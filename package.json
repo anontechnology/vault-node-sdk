@@ -1,8 +1,8 @@
 {
-  "name": "vault-node-sdk",
+  "name": "anontech-vizivault-client",
   "version": "0.1.1",
-  "description": "A Javascript SDK for abstracting and simplifying transactions between the Anontech Nox REST API.",
-  "license": "MIT",
+  "description": "A Javascript SDK for abstracting and simplifying transactions between the Anontech ViziVault REST API.",
+  "license": "LGPL3.0",
   "main": "build/Index.js",
   "scripts": {
     "start:dev": "nodemon",
