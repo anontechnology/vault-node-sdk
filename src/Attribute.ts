@@ -1,33 +1,20 @@
 import { Tag } from "./Tag";
 
 export class Attribute {
-  private dataPointId: string;
   private userId: string;
   private attribute: string;
-  private sensitivity: string;
+  private sensitivity?: string;
   private value: any;
   private regulations: Array<string>;
   private tags: Array<Tag>;
-  private createdDate: Date;
-  private modifiedDate: Date;
+  private createdDate?: Date;
+  private modifiedDate?: Date;
 
   constructor() {
     this.regulations = new Array();
     this.tags = new Array();
-    this.createdDate = new Date();
-    this.modifiedDate = new Date();
-    this.dataPointId = "";
     this.userId = "";
     this.attribute = "";
-    this.sensitivity = "";
-  }
-
-  public getDataPointId(): string {
-    return this.dataPointId;
-  }
-
-  public setDataPointId(dataPointId: string): void {
-    this.dataPointId = dataPointId;
   }
 
   public getRegulations(): Array<string> {
@@ -62,7 +49,7 @@ export class Attribute {
     this.userId = userId;
   }
 
-  public getSensitivity(): string {
+  public getSensitivity(): string | undefined {
     return this.sensitivity;
   }
 
@@ -78,7 +65,7 @@ export class Attribute {
     this.attribute = attribute;
   }
 
-  public getCreatedDate(): Date {
+  public getCreatedDate(): Date | undefined {
     return this.createdDate;
   }
 
@@ -86,7 +73,7 @@ export class Attribute {
     this.createdDate = createdDate;
   }
 
-  public getModifiedDate(): Date {
+  public getModifiedDate(): Date | undefined {
     return this.modifiedDate;
   }
 

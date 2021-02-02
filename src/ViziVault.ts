@@ -1,3 +1,4 @@
+import Axios from 'axios';
 import { Tag } from "./Tag";
 import { Attribute } from "./Attribute";
 import { Entity } from "./Entity";
@@ -5,19 +6,21 @@ import { Regulation } from "./Regulation";
 import { SearchRequest } from "./SearchRequest";
 import { User } from "./User";
 import { AttributeDefinition } from "./AttributeDefinition";
-import { VaultException } from "./VaultException";
 import { StorageRequest } from "./StorageRequest";
+import { VaultException } from './VaultException';
+import { EntityDefinition } from './EntityDefinition';
+import { PaginatedSearchRequest } from './PaginatedSearchRequest';
 
 export class ViziVault {
   private baseUrl?: URL;
-  private headersDict: Map<string, string>;
   private encryptionKey: string;
   private decryptionKey: string;
+  private apiKey: string;
 
   public constructor() {
-    this.headersDict = new Map();
     this.encryptionKey = "";
     this.decryptionKey = "";
+    this.apiKey = "";
   }
 
   public withBaseURL(url: URL): ViziVault {
@@ -26,121 +29,172 @@ export class ViziVault {
   }
 
   public withApiKey(apiKey: string): ViziVault {
-    this.headersDict.set("Authorization", "Bearer " + apiKey);
+    this.apiKey = apiKey;
     return this;
   }
 
   public withEncryptionKey(encryptionKey: string): ViziVault {
-    this.headersDict.set("X-Encryption-Key", encryptionKey);
+    this.encryptionKey = encryptionKey;
     return this;
   }
 
   public withDecryptionKey(decryptionKey: string): ViziVault {
-    this.headersDict.set("X-Decryption-Key", decryptionKey);
+    this.decryptionKey = decryptionKey;
     return this;
   }
 
-  public setHeaders(): Headers {
-    const requestHeaders = new Headers();
-    this.headersDict.forEach((value, key) => {
-      requestHeaders.set(key, value);
-    });
-    return requestHeaders;
-  }
-
-  private async post(url: string, body: any, headers?: Headers): Promise<string> {
-    try {
-      if (headers === null) {
-        headers = this.setHeaders();
+  private async post(url: string, body: any, encrypt?: boolean): Promise<any> {
+    Axios.interceptors.response.use(
+      res => {
+        return res;
+      },
+      err => {
+        console.log(err);
+        let response = err.response;
+        let message = "Something went wrong."
+        let status = 418;
+        if (response) {
+          status = response.status;
+          if (response.data) {
+            message = response.data.message;
+          }
+        }
+        return Promise.reject(new VaultException(message, status));
       }
+    );
+    try {
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await fetch(fullUrl.toString(), {
-        method: 'POST',
-        body: body,
-        headers: headers
-      });
-
-      if (!response.ok) {
-        throw new VaultException(response.statusText, response.status);
+      if (encrypt) {
+        const response = await Axios.post(fullUrl.toString(), body, {
+          headers: {
+            'X-Encryption-Key': this.encryptionKey
+          }
+        });
+  
+        return response;
+      } else {
+        const response = await Axios.post(fullUrl.toString(), body);
+  
+        return response;
       }
-      return response.json();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  private async get(url: string, decrypt?: boolean): Promise<any> {
+    Axios.interceptors.response.use(
+      res => res,
+      err => {
+        console.log(err);
+        let response = err.response;
+        let message = "Something went wrong."
+        let status = 418;
+        if (response) {
+          status = response.status;
+          if (response.data) {
+            message = response.data.message;
+          }
+        }
+        return Promise.reject(new VaultException(message, status));
+      }
+    );
+    try {
+      const fullUrl = new URL(this.baseUrl + url);
+      if (decrypt) {
+        const { data } = await Axios.get(fullUrl.toString(), {
+          headers: {
+            'X-Decryption-Key': this.decryptionKey
+          }
+        });
+  
+        return data;
+      } else {
+        const { data } = await Axios.get(fullUrl.toString());
+        return data;
+      }
     } catch (e) {
       console.log(e);
       return "";
     }
   }
 
-  private async get(url: string, headers: Headers): Promise<string> {
-    try {
-      if (headers === null) {
-        headers = this.setHeaders();
+  private async delete(url: string): Promise<any> {
+    Axios.interceptors.response.use(
+      res => res,
+      err => {
+        let response = err.response;
+        let message = "Something went wrong."
+        let status = 418;
+        if (response) {
+          status = response.status;
+          if (response.data) {
+            message = response.data.message;
+          }
+        }
+        return Promise.reject(new VaultException(message, status));
       }
+    );
+    try {
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await fetch(fullUrl.toString(), {
-        method: 'GET',
-        headers: headers
-      });
+      const response = await Axios.delete(fullUrl.toString());
 
-      if (!response.ok) {
-        throw new VaultException(response.statusText, response.status);
-      }
-      return response.json();
+      return response;
     } catch (e) {
       console.log(e);
       return "";
     }
   }
 
-  private async delete(url: string): Promise<string> {
-    try {
-      const fullUrl = new URL(this.baseUrl + url);
+  private getWithDecryptionKey(url: string): Promise<any> {
+    return this.get(url, true);
+  }
 
-      const response = await fetch(fullUrl.toString(), {
-        method: 'DELETE',
-        headers: this.setHeaders()
+  private postWithEncryptionKey(url: string, body: any): Promise<any> {
+    return this.post(url, body, true);
+  }
+
+  public async findByEntity(entityId: string): Promise<any> {
+    await this.getWithDecryptionKey("/entities/" + entityId + "/attributes").then((data) => {
+      this.get("/entities/" + entityId).then((entity) => {
+        data.array.forEach((attribute: Attribute) => {
+          console.log(attribute);
+          entity.addAttributeWithoutPendingChange(attribute);
+        });
+
+        return entity;
       });
-
-      if (!response.ok) {
-        throw new VaultException(response.statusText, response.status);
-      }
-      return response.json();
-    } catch (e) {
-      console.log(e);
-      return "";
-    }
+    }); 
   }
 
-  private async getWithDecryptionKey(url: string): Promise<string> {
-    return await this.get(url, new Headers({ "X-Decryption-Key": this.decryptionKey }));
-  }
-
-  private async postWithEncryptionKey(url: string, body: any): Promise<string> {
-    return await this.post(url, body, new Headers({ "X-Encryption-Key": this.encryptionKey }));
-  }
-
-  public async findByEntity(entityId: string): Promise<Entity> {
-    const data = await this.getWithDecryptionKey("/entities/" + entityId + "/attributes");
-    return new Entity(JSON.parse(data), entityId);
-  }
-
-  public async findByUser(entityId: string): Promise<User> {
-    const data = await this.getWithDecryptionKey("/users/" + entityId + "/attributes");
-    return new User(JSON.parse(data), entityId);
+  public async findByUser(entityId: string): Promise<any> {
+    await this.getWithDecryptionKey("/users/" + entityId + "/attributes").then((data) => {
+      this.get("/users/" + entityId).then((user) => {
+        data.array.forEach((attribute: Attribute) => {
+          console.log(attribute);
+          user.addAttributeWithoutPendingChange(attribute);
+        });
+        
+        return user;
+      });
+    });    
   }
 
   public async save(entity: Entity): Promise<void> {
     entity.getDeletedAttributes().forEach(async (attribute) => {
-      await this.delete("/user/" + entity.getId() + "/attribute/" + attribute);
+      await this.delete("/users/" + entity.getId() + "/attribute/" + JSON.stringify(attribute));
     });
+    entity.setDeletedAttributes([]);
 
-    let pointsList = new Array();
-    entity.getChangedAttributes().forEach((attribute) => {
-      pointsList.push(attribute);
-    });
+    await this.post(entity instanceof User ? "/users" : "/entities", new EntityDefinition(entity));
 
-    await this.postWithEncryptionKey("/user/" + entity.getId() + "/attributes", new StorageRequest(pointsList));
+    if (entity.getChangedAttributes().length > 0) {
+      await this.postWithEncryptionKey(`/users/${entity.getId()}/attributes`, new StorageRequest(entity.getChangedAttributes()));
+    }
+
+    entity.setChangedAttributes([]);
   }
 
   public async purge(entity: Entity) {
@@ -159,31 +213,30 @@ export class ViziVault {
 
   public async getAttributeDefinition(attributeKey: string): Promise<AttributeDefinition> {
     const data = await this.getWithDecryptionKey("/attributes/" + attributeKey);
-    return JSON.parse(data);
+    return data;
   }
 
   public async getAttributeDefinitions(): Promise<Array<AttributeDefinition>> {
     const data = await this.getWithDecryptionKey("/attributes/");
-    return JSON.parse(data);
+    return data;
   }
 
   public async storeTag(tag: Tag): Promise<void> {
     await this.post("/tags", tag);
   }
 
-  public async getTag(tag: string): Promise<Tag> {
-    const data = await this.getWithDecryptionKey("/tags/" + tag);
-    return JSON.parse(data);
+  public async getTag(tag: Tag): Promise<Tag> {
+    const data = await this.getWithDecryptionKey("/tags/" + tag.getName());
+    return data;
   }
 
   public async getTags(): Promise<Array<Tag>> {
-    const data = await this.getWithDecryptionKey("/attributes/");
-    return JSON.parse(data);
+    return this.getWithDecryptionKey("/tags/");
   }
 
-  public async deleteTag(tag: string): Promise<boolean> {
+  public async deleteTag(tag: Tag): Promise<boolean> {
     try {
-      await this.delete("/tags/" + tag);
+      await this.delete("/tags/" + tag.getName());
       return true;
     } catch (e) {
       return false;
@@ -197,21 +250,21 @@ export class ViziVault {
 
   public async getRegulations(): Promise<Array<Regulation>> {
     const data = await this.getWithDecryptionKey("/regulations/");
-    return JSON.parse(data);
+    return data;
   }
 
   public async getRegulation(key: string): Promise<Regulation> {
     const data = await this.getWithDecryptionKey("/regulations/" + key);
-    return JSON.parse(data);
+    return data;
   }
 
-  public async search(searchRequest: SearchRequest): Promise<Array<Attribute>> {
-    const data = await this.post("/data/search", searchRequest);
-    return JSON.parse(data);
+  public async search(searchRequest: SearchRequest, page: number, count: number): Promise<Array<Attribute>> {
+    const data = await this.post("/search", new PaginatedSearchRequest(searchRequest, page, count));
+    return data;
   }
 
   public async getDataPoint(dataPointId: string): Promise<Attribute> {
     const data = await this.getWithDecryptionKey("/data/" + dataPointId);
-    return JSON.parse(data);
+    return data;
   }
 }

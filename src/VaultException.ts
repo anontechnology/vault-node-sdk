@@ -1,6 +1,5 @@
 export class VaultException extends Error {
   private statusCode: number;
-
   public message: string;
 
   public constructor(message: string, status: number) {
