@@ -1,10 +1,11 @@
 import { Tag } from "./Tag";
+import {format} from "date-fns";
 
 export class Attribute {
   private dataPointId: string;
   private userId: string;
   private attribute: string;
-  private sensitivity: string;
+  private sensitivity?: string | undefined;
   private value: any;
   private regulations: Array<string>;
   private tags: Array<Tag>;
@@ -19,7 +20,11 @@ export class Attribute {
     this.dataPointId = "";
     this.userId = "";
     this.attribute = "";
-    this.sensitivity = "";
+
+    // Override date formatting for JSON to be compatible with vault native format
+    this.createdDate.toJSON = function() {return format(this, "yyyy-MM-dd'T'HH:mm:ssXXX") }
+    this.modifiedDate.toJSON = function() {return format(this, "yyyy-MM-dd'T'HH:mm:ssXXX") }
+
   }
 
   public getDataPointId(): string {
@@ -63,7 +68,7 @@ export class Attribute {
   }
 
   public getSensitivity(): string {
-    return this.sensitivity;
+    return <string> this.sensitivity;
   }
 
   public setSensitivity(sensitivity: string): void {
@@ -77,6 +82,8 @@ export class Attribute {
   public setAttribute(attribute: string): void {
     this.attribute = attribute;
   }
+
+  public setAttribute()
 
   public getCreatedDate(): Date {
     return this.createdDate;
@@ -93,4 +100,15 @@ export class Attribute {
   public setModifiedDate(modifiedDate: Date): void {
     this.modifiedDate = modifiedDate;
   }
+
+  public withAttribute(attribute: string): Attribute {
+    this.attribute = attribute;
+    return this;
+  }
+
+  public withValue(value: string): Attribute {
+    this.value = value;
+    return this;
+  }
+
 }

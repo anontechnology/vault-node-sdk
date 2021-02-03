@@ -65,6 +65,14 @@ export class Entity {
     return this.deletedAttributes;
   }
 
+  clearDeletedAttributes() {
+    this.deletedAttributes = new Array();
+  }
+
+  clearChangedAttributes() {
+    this.changedAttributes = new Array();
+  }
+
   public buildAttribute(attributeKey: string, value: any) {
     let attribute = new Attribute();
     attribute.setAttribute(attributeKey);
@@ -73,13 +81,23 @@ export class Entity {
     this.setAttribute(attribute);
   }
 
-  public setAttribute(attribute: Attribute) {
+  public setAttributeWithoutPendingChange( attribute: Attribute) {
     const attributeKey = attribute.getAttribute();
     if(this.repeatedAttributes.has(attributeKey)){
       this.repeatedAttributes.get(attributeKey).push(attribute);
-    } else {
+    }
+    else if(this.attributes.has(attributeKey))  {
+      let repeatableValues = [this.attributes.get(attributeKey), attribute ];
+      this.attributes.delete(attributeKey);
+      this.repeatedAttributes.set(attributeKey, repeatableValues);
+    }
+    else {
       this.attributes.set(attributeKey, attribute);
     }
+  }
+
+  public setAttribute(attribute: Attribute) {
+    this.setAttributeWithoutPendingChange(attribute);
     this.changedAttributes.push(attribute);
   }
 

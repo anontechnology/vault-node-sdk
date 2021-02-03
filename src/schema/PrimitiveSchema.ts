@@ -12,10 +12,22 @@ export class PrimitiveSchema {
   public setString(string: string): void {
     this.string = string;
   }
+
+  toString()  {
+    return this.string
+  }
+
+  toJSON() {
+    return this.string
+  }
+
 }
+
+
+
 
 export namespace PrimitiveSchema {
   export enum PrimitiveSchema {
-    String, Integer, Boolean, Float, File, Date
+    string, integer, boolean, float, file, date
   }
 }
