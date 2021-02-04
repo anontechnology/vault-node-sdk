@@ -8,29 +8,13 @@ export class Entity {
   private id: string;
   private tags: Array<string>;
 
-  public constructor(data: Array<Attribute>, id: string) {
+  public constructor(id: string) {
     this.id = id;
     this.changedAttributes = [];
     this.attributes = new Map();
     this.repeatedAttributes = new Map<string, Array<Attribute>>();
     this.deletedAttributes = new Array();
     this.tags = new Array();
-
-    data.forEach((element) => {
-      const attributeKey = element.getAttribute();
-      if (this.attributes.has(attributeKey)){
-        let repeatableValues: any = new Array<Attribute>();
-        if (this.repeatedAttributes.has(attributeKey)){
-          repeatableValues = this.repeatedAttributes.get(attributeKey);
-        } else {
-          repeatableValues = [];
-          this.repeatedAttributes.set(attributeKey, repeatableValues);
-        }
-        repeatableValues.push(element);
-      } else {
-        this.attributes.set(attributeKey, element);
-      }
-    });
   }
 
   purge() {
@@ -61,16 +45,44 @@ export class Entity {
     return this.changedAttributes;
   }
 
+  setChangedAttributes(changedAttributes: Array<Attribute>): void {
+    this.changedAttributes = changedAttributes;
+  }
+
   getDeletedAttributes(): Array<string> {
     return this.deletedAttributes;
   }
 
-  clearDeletedAttributes() {
-    this.deletedAttributes = new Array();
+  setDeletedAttributes(deletedAttributes: Array<string>): void {
+    this.deletedAttributes = deletedAttributes;
   }
 
-  clearChangedAttributes() {
-    this.changedAttributes = new Array();
+  addAttribute(attributeKey: string, value: any): void {
+    let attribute = new Attribute();
+    attribute.setAttribute(attributeKey);
+    attribute.setValue(value);
+
+    this._addAttribute(attribute);
+  }
+
+  private _addAttribute(attribute: Attribute): void {
+    this.addAttributeWithoutPendingChange(attribute);
+    this.changedAttributes.push(attribute);
+  }
+
+  addAttributeWithoutPendingChange(attribute: Attribute): void {
+    let attributeKey = attribute.getAttribute();
+    if (this.repeatedAttributes.has(attributeKey)) {
+      this.repeatedAttributes.get(attributeKey).add(attribute);
+    } else if(this.attributes.has(attributeKey)) {
+      let repeatableValues = new Array();
+      repeatableValues.push(this.attributes.get(attributeKey));
+      repeatableValues.push(attribute);
+      this.attributes.delete(attributeKey);
+      this.repeatedAttributes.set(attributeKey, repeatableValues);
+    } else {
+      this.attributes.set(attributeKey, attribute);
+    }
   }
 
   public buildAttribute(attributeKey: string, value: any) {
@@ -81,23 +93,8 @@ export class Entity {
     this.setAttribute(attribute);
   }
 
-  public setAttributeWithoutPendingChange( attribute: Attribute) {
-    const attributeKey = attribute.getAttribute();
-    if(this.repeatedAttributes.has(attributeKey)){
-      this.repeatedAttributes.get(attributeKey).push(attribute);
-    }
-    else if(this.attributes.has(attributeKey))  {
-      let repeatableValues = [this.attributes.get(attributeKey), attribute ];
-      this.attributes.delete(attributeKey);
-      this.repeatedAttributes.set(attributeKey, repeatableValues);
-    }
-    else {
-      this.attributes.set(attributeKey, attribute);
-    }
-  }
-
   public setAttribute(attribute: Attribute) {
-    this.setAttributeWithoutPendingChange(attribute);
+    this.addAttributeWithoutPendingChange(attribute);
     this.changedAttributes.push(attribute);
   }
 

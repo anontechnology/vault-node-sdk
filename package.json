@@ -1,19 +1,21 @@
 {
-  "name": "javascript-client-2",
-  "version": "0.1.0",
-  "description": "A Javascript SDK for abstracting and simplifying transactions between the Anontech Nox REST API.",
-  "license": "Unlicense",
-  "main": "src/ViziVault.ts",
+  "name": "anontech-vizivault-client",
+  "version": "0.1.2",
+  "description": "A Javascript SDK for abstracting and simplifying transactions between the Anontech ViziVault REST API.",
+  "license": "LGPL3.0",
+  "main": "build/Index.js",
   "scripts": {
     "test": "mocha --recursive",
     "start:dev": "nodemon",
     "build": "rimraf ./build && tsc",
+    "watch": "tsc -w",
     "start": "npm run build && node build/ViziVault.js"
   },
   "browser": {
     "fs": false
   },
   "dependencies": {
+    "axios": "^0.21.0"
     "node-fetch": "^2.6.1",
     "date-fns": "^2.16.1"
   },

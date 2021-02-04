@@ -2,7 +2,7 @@ import { RegulationRule } from "./RegulationRule";
 
 export class AttributeRule extends RegulationRule {
 
-  private operator: AttributeListOperator;
+  private operator?: AttributeListOperator;
   private attributes: Array<String>;
 
   constructor() {
@@ -10,7 +10,7 @@ export class AttributeRule extends RegulationRule {
     this.attributes = new Array();
   }
 
-  public getOperator(): AttributeListOperator {
+  public getOperator(): AttributeListOperator | undefined {
     return this.operator;
   }
 

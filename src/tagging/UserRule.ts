@@ -1,15 +1,15 @@
 import { RegulationRule } from "./RegulationRule";
 
 export class UserRule extends RegulationRule {
-  private attribute: string;
-  private value: string;
-  private predicate: UserValuePredicate;
+  private attribute?: string;
+  private value?: string;
+  private predicate?: UserValuePredicate;
 
   constructor() {
     super("user");
   }
 
-  public getAttribute(): string {
+  public getAttribute(): string | undefined {
     return this.attribute;
   }
 
@@ -17,7 +17,7 @@ export class UserRule extends RegulationRule {
     this.value = value;
   }
 
-  public getValue(): string {
+  public getValue(): string | undefined {
     return this.value;
   }
 
@@ -25,7 +25,7 @@ export class UserRule extends RegulationRule {
     this.attribute = attribute;
   }
 
-  public getPredicate(): UserValuePredicate {
+  public getPredicate(): UserValuePredicate | undefined {
     return this.predicate;
   }
 

@@ -2,15 +2,15 @@ import { RegulationRule } from "./RegulationRule";
 
 export class TagRule extends RegulationRule {
 
-  private operator: TagListOperator;
+  private operator?: TagListOperator;
   private attributes: Array<string>;
-  
+
   constructor(){
     super("attribute");
     this.attributes = new Array();
   }
 
-  public getOperator(): TagListOperator {
+  public getOperator(): TagListOperator | undefined {
     return this.operator;
   }
 

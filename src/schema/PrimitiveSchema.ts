@@ -23,11 +23,6 @@ export class PrimitiveSchema {
 
 }
 
-
-
-
-export namespace PrimitiveSchema {
-  export enum PrimitiveSchema {
-    string, integer, boolean, float, file, date
-  }
+export enum PrimitiveSchemaType {
+  STRING = "string", INT = "int", BOOLEAN = "boolean", FILE = "file", FLOAT = "float", DATE = "date"
 }

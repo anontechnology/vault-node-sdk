@@ -5,6 +5,7 @@ export class DisjunctiveRule extends RegulationRule {
 
   constructor() {
     super("any");
+    this.constraints = new Array();
   }
 
   public getConstraints(): Array<RegulationRule> {

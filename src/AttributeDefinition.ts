@@ -1,3 +1,4 @@
+import { PrimitiveSchema, PrimitiveSchemaType } from "./schema/PrimitiveSchema";
 import { PrimitiveSchema } from "./schema/PrimitiveSchema";
 import { format } from 'date-fns';
 
@@ -7,16 +8,14 @@ export class AttributeDefinition {
   private hint: string;
   private repeatable: boolean;
   private indexed: boolean;
-  private createdDate: Date;
-  private modifiedDate: Date;
+  private createdDate?: Date;
+  private modifiedDate?: Date;
   private tags: Array<string>;
   private schema: any;
 
-  constructor() {
-    this.createdDate = new Date();
-    this.modifiedDate = new Date();
-    this.key = ""
-    this.name = "";
+  constructor(name: string) {
+    this.key = name;
+    this.name = name;
     this.hint = "";
     this.repeatable = false;
     this.indexed = false;
@@ -27,32 +26,79 @@ export class AttributeDefinition {
     this.modifiedDate.toJSON = function() {return format(this, "yyyy-MM-dd'T'HH:mm:ssXXX") }
 
     // The default schema is string
-    this.setSchema(new PrimitiveSchema("String"));
+    this.setSchema(PrimitiveSchemaType.STRING);
   }
 
-  public setSchema(schema: PrimitiveSchema) {
+  public setSchema(schema: PrimitiveSchemaType): void {
     this.schema = schema;
   }
 
-  public setRepeatable(repeatable: boolean) {
-    this.repeatable = repeatable;
+  public getSchema(): any {
+    return this.schema;
   }
 
-  public setIndexed(indexed: boolean) {
-    this.indexed = indexed;
+  public getName(): string {
+    return this.name;
   }
 
-  public setHint(hint: string) {
-    this.hint = hint;
-  }
-
-  public setName(name: string) {
+  public setName(name: string): void {
     this.name = name;
     this.key = name;
   }
 
-  public getName() {
-    return this.name;
+  public getKey(): string {
+    return this.key;
   }
 
+  public setKey(key: string): void {
+    this.key = key;
+  }
+
+  public getHint(): string {
+    return this.hint;
+  }
+
+  public setHint(hint: string): void {
+    this.hint = hint;
+  }
+
+  public getRepeatable(): boolean {
+    return this.repeatable;
+  }
+
+  public setRepeatable(repeatable: boolean): void {
+    this.repeatable = repeatable;
+  }
+
+  public getIndexed(): boolean {
+    return this.indexed;
+  }
+
+  public setIndexed(indexed: boolean): void {
+    this.indexed = indexed;
+  }
+
+  public getCreatedDate(): Date | undefined {
+    return this.createdDate;
+  }
+
+  public setCreatedDate(createdDate: Date): void {
+    this.createdDate = createdDate;
+  }
+
+  public getModifiedDate(): Date | undefined {
+    return this.modifiedDate;
+  }
+
+  public setModifiedDate(modifiedDate: Date): void {
+    this.modifiedDate = modifiedDate;
+  }
+
+  public getTags(): Array<string> {
+    return this.tags;
+  }
+
+  public setTags(tags: Array<string>) {
+    this.tags = tags;
+  }
 }

@@ -2,8 +2,8 @@ import {format} from "date-fns";
 
 export class Tag {
   private name: string;
-  private createdDate: Date;
-  private modifiedDate: Date;
+  private createdDate?: Date;
+  private modifiedDate?: Date;
 
   public constructor(name: string) {
     this.name = name;
@@ -23,7 +23,7 @@ export class Tag {
     this.name = name;
   }
 
-  public getCreatedDate(): Date {
+  public getCreatedDate(): Date | undefined {
     return this.createdDate;
   }
 
@@ -31,7 +31,7 @@ export class Tag {
     this.createdDate = createdDate;
   }
 
-  public getModifiedDate(): Date {
+  public getModifiedDate(): Date | undefined {
     return this.modifiedDate;
   }
 

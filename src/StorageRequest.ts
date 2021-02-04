@@ -4,7 +4,7 @@ export class StorageRequest {
   public data: Array<Attribute>;
   public origin?: string | undefined;
 
-  public constructor(dataPoints: Array<Attribute>) {
-    this.data = dataPoints;
+  public constructor(data: Array<Attribute>) {
+    this.data = data;
   }
 }
