@@ -15,8 +15,7 @@
     "fs": false
   },
   "dependencies": {
-    "axios": "^0.21.0"
-    "node-fetch": "^2.6.1",
+    "axios": "^0.21.0",
     "date-fns": "^2.16.1"
   },
   "devDependencies": {

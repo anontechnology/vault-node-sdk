@@ -118,14 +118,15 @@ export class ViziVault {
     );
     try {
       const fullUrl = new URL(this.baseUrl + url);
+      let data = null
       if (decrypt) {
-        const { data } = await Axios.get(fullUrl.toString(), {
+          data = await Axios.get(fullUrl.toString(), {
           headers: {
             'X-Decryption-Key': this.decryptionKey
           }
         });
 
-        return data;
+        return data.data;
       } else {
         const { data } = await Axios.get(fullUrl.toString());
         return data;
@@ -149,13 +150,17 @@ export class ViziVault {
             message = response.data.message;
           }
         }
-        return Promise.reject(new VaultException(message, status));
+        return Promise.reject(new VaultException(message, status) );
       }
     );
     try {
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await Axios.delete(fullUrl.toString());
+      const response = await Axios.delete(fullUrl.toString(), {
+        headers: {
+          'Authorization': this.apiKey
+        }
+      });
 
       return response;
     } catch (e) {
@@ -173,8 +178,8 @@ export class ViziVault {
   }
 
   public async findByEntity(entityId: string): Promise<any> {
-    await this.getWithDecryptionKey("/entities/" + entityId + "/attributes").then((data) => {
-      this.get("/entities/" + entityId).then((entity) => {
+    await this.getWithDecryptionKey("entities/" + entityId + "/attributes").then((data) => {
+      this.get("entities/" + entityId).then((entity) => {
         data.array.forEach((attribute: Attribute) => {
           console.log(attribute);
           entity.addAttributeWithoutPendingChange(attribute);
@@ -186,73 +191,88 @@ export class ViziVault {
   }
 
   public async findByUser(entityId: string): Promise<any> {
-    await this.getWithDecryptionKey("/users/" + entityId + "/attributes").then((data) => {
-      this.get("/users/" + entityId).then((user) => {
+    let data = await this.getWithDecryptionKey("users/" + entityId + "/attributes")
+
+
+    let user = await this.get("users/" + entityId);
+
+    let new_user = Object.assign(new User(entityId), user.data)
+
+    data.data.forEach((attribute: Attribute) => {
+      let new_attribute = Object.assign(new Attribute(), attribute)
+      new_user.addAttributeWithoutPendingChange(Object.assign(new Attribute(), new_attribute));
+    });
+
+    return new_user;
+
+/*]
+      this.get("users/" + entityId).then((user) => {
         data.array.forEach((attribute: Attribute) => {
-          console.log(attribute);
           user.addAttributeWithoutPendingChange(attribute);
         });
 
         return user;
       });
     });
+    */
+
   }
 
   public async save(entity: Entity): Promise<void> {
-    entity.getDeletedAttributes().forEach(async (attribute) => {
-      await this.delete("/users/" + entity.getId() + "/attribute/" + JSON.stringify(attribute));
-    });
+    for (const attribute of entity.getDeletedAttributes()) {
+      let attributeString =  JSON.stringify(attribute).replace(/['"]+/g, '');
+      await this.delete(`users/${entity.getId()}/attributes/` + attributeString);
+    }
     entity.setDeletedAttributes([]);
 
-    await this.post(entity instanceof User ? "/users" : "/entities", new EntityDefinition(entity));
+    await this.post(entity instanceof User ? "users" : "/entities", new EntityDefinition(entity));
 
     if (entity.getChangedAttributes().length > 0) {
-      await this.postWithEncryptionKey(`/users/${entity.getId()}/attributes`, new StorageRequest(entity.getChangedAttributes()));
+      await this.postWithEncryptionKey(`users/${entity.getId()}/attributes`, new StorageRequest(entity.getChangedAttributes()));
     }
 
     entity.setChangedAttributes([]);
   }
 
-  public async purge(entity: Entity) {
-    await this.delete("/users/" + entity.getId() + "/data");
-    entity.purge();
+  public async purge(userId: String) {
+    await this.delete("users/" + userId + "/data");
   }
 
   public async remove(entity: Entity, attributeKey: string) {
-    await this.delete("/users/" + entity.getId() + "/attributes/" + attributeKey);
+    await this.delete("users/" + entity.getId() + "/attributes/" + attributeKey);
     entity.clearAttribute(attributeKey);
   }
 
   public async storeAttributeDefinition(attribute: AttributeDefinition) {
-    await this.post("/attributes", attribute);
+    await this.post("attributes", attribute);
   }
 
   public async getAttributeDefinition(attributeKey: string): Promise<AttributeDefinition> {
-    const data = await this.getWithDecryptionKey("/attributes/" + attributeKey);
+    const data = await this.getWithDecryptionKey("attributes/" + attributeKey);
     return data;
   }
 
   public async getAttributeDefinitions(): Promise<Array<AttributeDefinition>> {
-    const data = await this.getWithDecryptionKey("/attributes/");
+    const data = await this.getWithDecryptionKey("attributes/");
     return data;
   }
 
   public async storeTag(tag: Tag): Promise<void> {
-    await this.post("/tags", tag);
+    await this.post("tags", tag);
   }
 
   public async getTag(tag: Tag): Promise<Tag> {
-    const data = await this.getWithDecryptionKey("/tags/" + tag.getName());
+    const data = await this.getWithDecryptionKey("tags/" + tag.getName());
     return data;
   }
 
   public async getTags(): Promise<Array<Tag>> {
-    return this.getWithDecryptionKey("/tags/");
+    return this.getWithDecryptionKey("tags/");
   }
 
   public async deleteTag(tag: Tag): Promise<boolean> {
     try {
-      await this.delete("/tags/" + tag.getName());
+      await this.delete("tags/" + tag.getName());
       return true;
     } catch (e) {
       return false;
@@ -260,17 +280,17 @@ export class ViziVault {
   }
 
   public async storeRegulation(regulation: Regulation): Promise<void> {
-    await this.post("/regulations", regulation);
+    await this.post("regulations", regulation);
   }
 
 
   public async getRegulations(): Promise<Array<Regulation>> {
-    const data = await this.getWithDecryptionKey("/regulations/");
+    const data = await this.getWithDecryptionKey("regulations/");
     return data;
   }
 
   public async getRegulation(key: string): Promise<Regulation> {
-    const data = await this.getWithDecryptionKey("/regulations/" + key);
+    const data = await this.getWithDecryptionKey("regulations/" + key);
     return data;
   }
 
@@ -283,12 +303,19 @@ export class ViziVault {
       throw new ValueException("Count must not be negative")
     }
 
-    const data = await this.post("/search", new PaginatedSearchRequest(searchRequest, page, count));
-    return data;
+    const data = await this.post("search", new PaginatedSearchRequest(searchRequest, page, count));
+
+    let searchResults = new Array<Attribute>();
+    data.data.data.forEach((result: Object) => {
+      let new_attribute = Object.assign(new Attribute(), result)
+      searchResults.push(new_attribute)
+    });
+
+    return searchResults;
   }
 
   public async getDataPoint(dataPointId: string): Promise<Attribute> {
-    const data = await this.getWithDecryptionKey("/data/" + dataPointId);
+    const data = await this.getWithDecryptionKey("data/" + dataPointId);
     return data;
   }
 }

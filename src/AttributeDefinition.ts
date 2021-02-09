@@ -1,6 +1,5 @@
-import { PrimitiveSchema, PrimitiveSchemaType } from "./schema/PrimitiveSchema";
-import { PrimitiveSchema } from "./schema/PrimitiveSchema";
-import { format } from 'date-fns';
+import { PrimitiveSchemaType } from "./schema/PrimitiveSchema";
+
 
 export class AttributeDefinition {
   private key: string;
@@ -19,11 +18,7 @@ export class AttributeDefinition {
     this.hint = "";
     this.repeatable = false;
     this.indexed = false;
-    this.tags = new Array();
-
-    // Override date formatting for JSON to be compatible with vault native format
-    this.createdDate.toJSON = function() {return format(this, "yyyy-MM-dd'T'HH:mm:ssXXX") }
-    this.modifiedDate.toJSON = function() {return format(this, "yyyy-MM-dd'T'HH:mm:ssXXX") }
+    this.tags = [];
 
     // The default schema is string
     this.setSchema(PrimitiveSchemaType.STRING);

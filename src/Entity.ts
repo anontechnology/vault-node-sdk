@@ -7,6 +7,9 @@ export class Entity {
   private deletedAttributes: Array<string>;
   private id: string;
   private tags: Array<string>;
+  private created?: Date;
+  private updated?: Date;
+
 
   public constructor(id: string) {
     this.id = id;
@@ -39,6 +42,8 @@ export class Entity {
 
   clearAttribute(attributeKey: string) {
     this.attributes.delete(attributeKey);
+    this.repeatedAttributes.delete(attributeKey);
+    this.deletedAttributes.push(attributeKey);
   }
 
   getChangedAttributes(): Array<Attribute> {
@@ -107,7 +112,8 @@ export class Entity {
   }
 
   public getAttributes(): Array<Attribute> {
-    return Array.from(this.attributes.values());
+    let  flattenedRepeatedAttributes = [].concat.apply([], (Array.from(this.repeatedAttributes.values())) as Array<any> );
+    return Array.from(this.attributes.values()).concat(flattenedRepeatedAttributes);
   }
 
   public deleteAttribute(attributeKey: string) {
