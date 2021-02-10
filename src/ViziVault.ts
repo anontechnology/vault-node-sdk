@@ -133,7 +133,7 @@ export class ViziVault {
       }
     } catch (e) {
       console.log(e);
-      return "";
+      return Promise.reject(e);
     }
   }
 
@@ -165,7 +165,7 @@ export class ViziVault {
       return response;
     } catch (e) {
       console.log(e);
-      return "";
+      return Promise.reject(e);
     }
   }
 
@@ -204,18 +204,6 @@ export class ViziVault {
     });
 
     return new_user;
-
-/*]
-      this.get("users/" + entityId).then((user) => {
-        data.array.forEach((attribute: Attribute) => {
-          user.addAttributeWithoutPendingChange(attribute);
-        });
-
-        return user;
-      });
-    });
-    */
-
   }
 
   public async save(entity: Entity): Promise<void> {
@@ -249,6 +237,7 @@ export class ViziVault {
 
   public async getAttributeDefinition(attributeKey: string): Promise<AttributeDefinition> {
     const data = await this.getWithDecryptionKey("attributes/" + attributeKey);
+
     return data;
   }
 
@@ -261,20 +250,27 @@ export class ViziVault {
     await this.post("tags", tag);
   }
 
-  public async getTag(tag: Tag): Promise<Tag> {
-    const data = await this.getWithDecryptionKey("tags/" + tag.getName());
+  public async getTag(tag: String): Promise<Tag> {
+    const data = await this.getWithDecryptionKey("tags/" + tag);
     return data;
   }
 
   public async getTags(): Promise<Array<Tag>> {
-    return this.getWithDecryptionKey("tags/");
+    const data = await this.getWithDecryptionKey("tags/");
+    let tags: Array<Tag> = [];
+
+    data.data.forEach((tag: Tag) => {
+      tags.push(Object.assign(new Tag(''), tag));
+    });
+
+    return tags;
   }
 
-  public async deleteTag(tag: Tag): Promise<boolean> {
+  public async deleteTag(tag: String): Promise<boolean> {
     try {
-      await this.delete("tags/" + tag.getName());
+      let my_delete = await this.delete("tags/" + tag);
       return true;
-    } catch (e) {
+    } catch (VaultResponseException) {
       return false;
     }
   }
@@ -316,6 +312,7 @@ export class ViziVault {
 
   public async getDataPoint(dataPointId: string): Promise<Attribute> {
     const data = await this.getWithDecryptionKey("data/" + dataPointId);
-    return data;
+    let new_attribute = Object.assign(new Attribute(), data.data)
+    return new_attribute;
   }
 }

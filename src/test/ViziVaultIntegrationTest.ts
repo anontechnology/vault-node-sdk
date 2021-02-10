@@ -1,13 +1,23 @@
+import {VaultException} from "../VaultException";
 const assert = require('assert');
-
+const lodash = require('lodash');
 import {ViziVault} from "../ViziVault";
 import {AttributeDefinition} from "../AttributeDefinition";
 import {User} from "../User";
 import {Attribute} from "../Attribute";
 import {SearchRequest} from "../SearchRequest";
+import {Tag} from "../Tag";
+import {Regulation} from "../Regulation";
+import {ConjunctiveRule} from "../tagging/ConjunctiveRule";
+import {AttributeListOperator, AttributeRule} from "../tagging/AttributeRule";
+import {UserRule, UserValuePredicate} from "../tagging/UserRule";
+//import {VaultException} from "../VaultException";
+
 
 
 const fs = require('fs')
+
+
 
 
 describe('Integration Tests:', function () {
@@ -50,9 +60,9 @@ describe('Integration Tests:', function () {
       await vault.save(sentUser)
 
       let testUser = await vault.findByUser(username) as User
-      assert(attribute1.getValue() == testUser.getAttribute(attributeDef1.getName())[0].getValue())
+      assert(attribute1.getValue() == testUser.getAttribute(attributeDef1.getName()).getValue())
       assert(testUser.getAttributes().length == 3)
-      assert(testUser.getAttribute(attributeDef2.getName()).length == 2);
+      assert(testUser.getAttributes(attributeDef2.getName()).length == 2);
 
       // Remove one Attribute
       testUser.clearAttribute(attributeDef1.getName());
@@ -69,7 +79,8 @@ describe('Integration Tests:', function () {
 
   });
 
-  it('testSearch', async function () {
+  it('Test Search', async function () {
+
     let attributeDef1 = new AttributeDefinition("TestAttribute1")
     attributeDef1.setIndexed(true);
     let attributeDef2 = new AttributeDefinition("TestAttribute2")
@@ -91,15 +102,15 @@ describe('Integration Tests:', function () {
 
       let searchRequest = new SearchRequest();
       searchRequest.addValueQuery(attributeDef1.getName(), "common first name")
-      searchRequest.setAttributes(  [attributeDef2.getName()] );
+      searchRequest.setAttributes([attributeDef2.getName()]);
 
       let results = await vault.search(searchRequest, 0, 10)
       assert(results.length == 3)
 
-      assert( results.some(function (result) {
+      assert(results.some(function (result) {
         return result.getAttribute() == attributeDef1.getName() && result.getUserId() == user1.getId()
       }) == true);
-      assert ( results.some(function (result) {
+      assert(results.some(function (result) {
         return result.getAttribute() == attributeDef1.getName() && result.getUserId() == user2.getId()
       }) == true);
       results.some(function (result) {
@@ -109,10 +120,105 @@ describe('Integration Tests:', function () {
       await vault.purge(username);
       await vault.purge(secondUsername);
       console.log(e);
-      return "";
+      throw (e);
+    }
+  })
+
+
+
+  it('Get Attribute by Datapoint ID', async function () {
+    let attributeDef1 = new AttributeDefinition("TestAttribute1");
+    await vault.storeAttributeDefinition(attributeDef1);
+    let sentUser = new User(username);
+    sentUser.buildAttribute(attributeDef1.getName(), "some data");
+    await vault.save(sentUser);
+    let receivedUser = await vault.findByUser(sentUser.getId());
+    let receivedAttribute = await receivedUser.getAttribute(attributeDef1.getName());
+    assert(lodash.isEqual(receivedAttribute, await vault.getDataPoint(receivedAttribute.getDataPointId())));
+  })
+
+  it('Test Tags', async function () {
+    let attributeDef1 = new AttributeDefinition("TestAttribute1")
+    attributeDef1.setTags(["tag1"])
+    await vault.storeAttributeDefinition(attributeDef1);
+
+    let sentUser = new User(username);
+    sentUser.setTags(["tag2"]);
+
+    let attribute1 = new Attribute(attributeDef1.getName());
+    attribute1.setTags(["tag3"]);
+    sentUser.addAttribute(attribute1, 'common first name');
+
+    try {
+      await vault.save(sentUser);
+
+      let receivedUser = await vault.findByUser(username) as User;
+      let receivedAttribute = await receivedUser.getAttribute(attributeDef1.getName());
+
+      assert(receivedAttribute.getTags().length == 3);
+      assert(receivedAttribute.getTags().some(function (tag) {
+        return tag == "tag1"
+      }) == true);
+      assert(receivedAttribute.getTags().some(function (tag) {
+        return tag == "tag2"
+      }) == true);
+      assert(receivedAttribute.getTags().some(function (tag) {
+        return tag == "tag3"
+      }) == true);
+
+      let tag4 = new Tag("tag4");
+      await vault.storeTag(tag4);
+
+      let allTags = await vault.getTags() as Array<Tag>;
+      assert(allTags.some(function (tag) {
+        return tag.getName() == "tag1"
+      }) == true);
+      assert(allTags.some(function (tag) {
+        return tag.getName() == "tag2"
+      }) == true);
+      assert(allTags.some(function (tag) {
+        return tag.getName() == "tag3"
+      }) == true);
+      assert(allTags.some(function (tag) {
+        return tag.getName() == "tag4"
+      }) == true);
+
+      await vault.deleteTag("tag1");
+      await vault.deleteTag("tag2");
+      await vault.deleteTag("tag3");
+      await vault.deleteTag("tag4");
+
+      try {
+        await vault.getTag("tag5")
+      } catch (e) {
+        assert( (e.message == "Something went wrong." && e.statusCode == 418) == true)
+        return "";
+      }
+
+      assert(await vault.deleteTag("tag5") == false);
+
+      allTags = await vault.getTags();
+      assert(allTags.some(function (tag) {
+        return tag.getName() == "tag1"
+      }) == false);
+      assert(allTags.some(function (tag) {
+        return tag.getName() == "tag2"
+      }) == false);
+      assert(allTags.some(function (tag) {
+        return tag.getName() == "tag3"
+      }) == false);
+      assert(allTags.some(function (tag) {
+        return tag.getName() == "tag4"
+      }) == false);
+
+    } catch (e) {
+      await vault.purge(username);
+      console.log(e);
+      throw(e);
     }
 
   })
+
 
 
 });

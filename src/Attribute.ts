@@ -1,20 +1,24 @@
-import { Tag } from "./Tag";
-
 export class Attribute {
+  private dataPointId: string | undefined;
   private userId: string;
   private attribute: string;
   private sensitivity?: string | undefined;
   private value: any;
   private regulations: Array<string>;
-  private tags: Array<Tag>;
+  private tags: Array<String>;
   private createdDate?: Date;
   private modifiedDate?: Date;
 
-  constructor() {
+  constructor(attributeDefinitionName: undefined|string = undefined ) {
     this.regulations = new Array();
     this.tags = new Array();
     this.userId = "";
     this.attribute = "";
+
+    if (attributeDefinitionName != undefined) {
+      this.attribute = attributeDefinitionName;
+    }
+
   }
 
   public getRegulations(): Array<string> {
@@ -25,11 +29,11 @@ export class Attribute {
     this.regulations = regulations;
   }
 
-  public getTags(): Array<Tag> {
+  public getTags(): Array<String> {
     return this.tags;
   }
 
-  public setTags(tags: Array<Tag>): void {
+  public setTags(tags: Array<String>): void {
     this.tags = tags;
   }
 
@@ -86,9 +90,14 @@ export class Attribute {
     return this;
   }
 
+  public getDataPointId(): String | undefined {
+    return this.dataPointId;
+  }
+
   public withValue(value: string): Attribute {
     this.value = value;
     return this;
   }
+
 
 }
