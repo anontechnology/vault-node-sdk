@@ -10,6 +10,7 @@ import { StorageRequest } from "./StorageRequest";
 import { VaultException } from './VaultException';
 import { EntityDefinition } from './EntityDefinition';
 import { PaginatedSearchRequest } from './PaginatedSearchRequest';
+import {ValueException} from "./ValueException";
 
 export class ViziVault {
   private baseUrl?: URL;
@@ -43,6 +44,21 @@ export class ViziVault {
     return this;
   }
 
+  public setEncryptionKey(encryptionKey: string) {
+    this.encryptionKey = encryptionKey;
+    return true;
+  }
+
+  public setDecryptionKey(decryptionKey: string) {
+    this.decryptionKey = decryptionKey;
+    return true;
+  }
+
+  public setApiKey(authorization: string) {
+    this.apiKey = authorization;
+    return true;
+  }
+
   private async post(url: string, body: any, encrypt?: boolean): Promise<any> {
     Axios.interceptors.response.use(
       res => {
@@ -71,11 +87,11 @@ export class ViziVault {
             'X-Encryption-Key': this.encryptionKey
           }
         });
-  
+
         return response;
       } else {
         const response = await Axios.post(fullUrl.toString(), body);
-  
+
         return response;
       }
     } catch (e) {
@@ -102,21 +118,22 @@ export class ViziVault {
     );
     try {
       const fullUrl = new URL(this.baseUrl + url);
+      let data = null
       if (decrypt) {
-        const { data } = await Axios.get(fullUrl.toString(), {
+          data = await Axios.get(fullUrl.toString(), {
           headers: {
             'X-Decryption-Key': this.decryptionKey
           }
         });
-  
-        return data;
+
+        return data.data;
       } else {
         const { data } = await Axios.get(fullUrl.toString());
         return data;
       }
     } catch (e) {
       console.log(e);
-      return "";
+      return Promise.reject(e);
     }
   }
 
@@ -133,18 +150,22 @@ export class ViziVault {
             message = response.data.message;
           }
         }
-        return Promise.reject(new VaultException(message, status));
+        return Promise.reject(new VaultException(message, status) );
       }
     );
     try {
       const fullUrl = new URL(this.baseUrl + url);
 
-      const response = await Axios.delete(fullUrl.toString());
+      const response = await Axios.delete(fullUrl.toString(), {
+        headers: {
+          'Authorization': this.apiKey
+        }
+      });
 
       return response;
     } catch (e) {
       console.log(e);
-      return "";
+      return Promise.reject(e);
     }
   }
 
@@ -157,8 +178,8 @@ export class ViziVault {
   }
 
   public async findByEntity(entityId: string): Promise<any> {
-    await this.getWithDecryptionKey("/entities/" + entityId + "/attributes").then((data) => {
-      this.get("/entities/" + entityId).then((entity) => {
+    await this.getWithDecryptionKey("entities/" + entityId + "/attributes").then((data) => {
+      this.get("entities/" + entityId).then((entity) => {
         data.array.forEach((attribute: Attribute) => {
           console.log(attribute);
           entity.addAttributeWithoutPendingChange(attribute);
@@ -166,105 +187,147 @@ export class ViziVault {
 
         return entity;
       });
-    }); 
+    });
   }
 
   public async findByUser(entityId: string): Promise<any> {
-    await this.getWithDecryptionKey("/users/" + entityId + "/attributes").then((data) => {
-      this.get("/users/" + entityId).then((user) => {
-        data.array.forEach((attribute: Attribute) => {
-          console.log(attribute);
-          user.addAttributeWithoutPendingChange(attribute);
-        });
-        
-        return user;
-      });
-    });    
+    let data = await this.getWithDecryptionKey("users/" + entityId + "/attributes")
+
+
+    let user = await this.get("users/" + entityId);
+
+    let new_user = Object.assign(new User(entityId), user.data)
+
+    data.data.forEach((attribute: Attribute) => {
+      let new_attribute = Object.assign(new Attribute(), attribute)
+      new_user.addAttributeWithoutPendingChange(Object.assign(new Attribute(), new_attribute));
+    });
+
+    return new_user;
   }
 
   public async save(entity: Entity): Promise<void> {
-    entity.getDeletedAttributes().forEach(async (attribute) => {
-      await this.delete("/users/" + entity.getId() + "/attribute/" + JSON.stringify(attribute));
-    });
+    for (const attribute of entity.getDeletedAttributes()) {
+      let attributeString =  JSON.stringify(attribute).replace(/['"]+/g, '');
+      await this.delete(`users/${entity.getId()}/attributes/` + attributeString);
+    }
     entity.setDeletedAttributes([]);
 
-    await this.post(entity instanceof User ? "/users" : "/entities", new EntityDefinition(entity));
+    await this.post(entity instanceof User ? "users" : "/entities", new EntityDefinition(entity));
 
     if (entity.getChangedAttributes().length > 0) {
-      await this.postWithEncryptionKey(`/users/${entity.getId()}/attributes`, new StorageRequest(entity.getChangedAttributes()));
+      await this.postWithEncryptionKey(`users/${entity.getId()}/attributes`, new StorageRequest(entity.getChangedAttributes()));
     }
 
     entity.setChangedAttributes([]);
   }
 
-  public async purge(entity: Entity) {
-    await this.delete("/users/" + entity.getId() + "/data");
-    entity.purge();
+  public async purge(userId: String) {
+    await this.delete("users/" + userId + "/data");
   }
 
   public async remove(entity: Entity, attributeKey: string) {
-    await this.delete("/users/" + entity.getId() + "/attributes/" + attributeKey);
+    await this.delete("users/" + entity.getId() + "/attributes/" + attributeKey);
     entity.clearAttribute(attributeKey);
   }
 
   public async storeAttributeDefinition(attribute: AttributeDefinition) {
-    await this.post("/attributes", attribute);
+    await this.post("attributes", attribute);
   }
 
   public async getAttributeDefinition(attributeKey: string): Promise<AttributeDefinition> {
-    const data = await this.getWithDecryptionKey("/attributes/" + attributeKey);
-    return data;
+    const data = await this.getWithDecryptionKey("attributes/" + attributeKey);
+    return Object.assign(new AttributeDefinition(""), data.data);
   }
 
   public async getAttributeDefinitions(): Promise<Array<AttributeDefinition>> {
-    const data = await this.getWithDecryptionKey("/attributes/");
-    return data;
+    const data = await this.getWithDecryptionKey("attributes/");
+    let attributeDefinitions: Array<AttributeDefinition> = [];
+    data.data.forEach((attributeDefinition: AttributeDefinition) => {
+      attributeDefinitions.push(Object.assign(new AttributeDefinition(""), attributeDefinition));
+    });
+    return attributeDefinitions
   }
 
   public async storeTag(tag: Tag): Promise<void> {
-    await this.post("/tags", tag);
+    await this.post("tags", tag);
   }
 
-  public async getTag(tag: Tag): Promise<Tag> {
-    const data = await this.getWithDecryptionKey("/tags/" + tag.getName());
+  public async getTag(tag: String): Promise<Tag> {
+    const data = await this.getWithDecryptionKey("tags/" + tag);
     return data;
   }
 
   public async getTags(): Promise<Array<Tag>> {
-    return this.getWithDecryptionKey("/tags/");
+    const data = await this.getWithDecryptionKey("tags/");
+    let tags: Array<Tag> = [];
+
+    data.data.forEach((tag: Tag) => {
+      tags.push(Object.assign(new Tag(''), tag));
+    });
+
+    return tags;
   }
 
-  public async deleteTag(tag: Tag): Promise<boolean> {
+  public async deleteTag(tag: String): Promise<boolean> {
     try {
-      await this.delete("/tags/" + tag.getName());
+      let my_delete = await this.delete("tags/" + tag);
       return true;
-    } catch (e) {
+    } catch (VaultResponseException) {
       return false;
     }
   }
 
   public async storeRegulation(regulation: Regulation): Promise<void> {
-    await this.post("/regulations", regulation);
+    await this.post("regulations", regulation);
   }
 
 
   public async getRegulations(): Promise<Array<Regulation>> {
-    const data = await this.getWithDecryptionKey("/regulations/");
-    return data;
+    const data = await this.getWithDecryptionKey("regulations/");
+    let regulations: Array<Regulation> = [];
+    data.data.forEach((regulation: Regulation) => {
+      regulations.push(Object.assign(new Regulation(), regulation));
+    });
+    return regulations;
   }
 
   public async getRegulation(key: string): Promise<Regulation> {
-    const data = await this.getWithDecryptionKey("/regulations/" + key);
-    return data;
+    const data = await this.getWithDecryptionKey("regulations/" + key);
+    return Object.assign(new Regulation(), data.data)
+  }
+
+  public async deleteRegulation(regulation: string): Promise<boolean> {
+    try {
+      let my_delete = await this.delete("regulations/" + regulation)
+      return true
+    } catch (VaultResponseException) {
+      return false;
+    }
   }
 
   public async search(searchRequest: SearchRequest, page: number, count: number): Promise<Array<Attribute>> {
-    const data = await this.post("/search", new PaginatedSearchRequest(searchRequest, page, count));
-    return data;
+    if (!(Number.isInteger(page)) || !(Number.isInteger(count)) ) {
+      throw new ValueException("Page and Count must be Integers")
+    } else if (page < 0 ) {
+      throw new ValueException("Page must not be negative")
+    } else if (count < 0 ) {
+      throw new ValueException("Count must not be negative")
+    }
+
+    const data = await this.post("search", new PaginatedSearchRequest(searchRequest, page, count));
+
+    let searchResults = new Array<Attribute>();
+    data.data.data.forEach((result: Object) => {
+      let new_attribute = Object.assign(new Attribute(), result)
+      searchResults.push(new_attribute)
+    });
+
+    return searchResults;
   }
 
   public async getDataPoint(dataPointId: string): Promise<Attribute> {
-    const data = await this.getWithDecryptionKey("/data/" + dataPointId);
-    return data;
+    const data = await this.getWithDecryptionKey("data/" + dataPointId);
+    return Object.assign(new Attribute(), data.data)
   }
 }

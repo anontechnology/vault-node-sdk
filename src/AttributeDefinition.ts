@@ -1,4 +1,5 @@
-import { PrimitiveSchema, PrimitiveSchemaType } from "./schema/PrimitiveSchema";
+import { PrimitiveSchemaType } from "./schema/PrimitiveSchema";
+
 
 export class AttributeDefinition {
   private key: string;
@@ -17,7 +18,9 @@ export class AttributeDefinition {
     this.hint = "";
     this.repeatable = false;
     this.indexed = false;
-    this.tags = new Array();
+    this.tags = [];
+
+    // The default schema is string
     this.setSchema(PrimitiveSchemaType.STRING);
   }
 

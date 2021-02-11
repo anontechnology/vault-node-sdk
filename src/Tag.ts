@@ -1,3 +1,5 @@
+import {format} from "date-fns";
+
 export class Tag {
   private name: string;
   private createdDate?: Date;
@@ -5,6 +7,12 @@ export class Tag {
 
   public constructor(name: string) {
     this.name = name;
+    this.createdDate = new Date();
+    this.modifiedDate = new Date();
+
+    // Override date formatting for JSON to be compatible with vault native format
+    this.createdDate.toJSON = function() {return format(this, "yyyy-MM-dd'T'HH:mm:ssXXX") }
+    this.modifiedDate.toJSON = function() {return format(this, "yyyy-MM-dd'T'HH:mm:ssXXX") }
   }
 
   public getName(): string {

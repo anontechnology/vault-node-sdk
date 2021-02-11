@@ -1,10 +1,11 @@
 {
   "name": "anontech-vizivault-client",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A Javascript SDK for abstracting and simplifying transactions between the Anontech ViziVault REST API.",
   "license": "LGPL3.0",
   "main": "build/Index.js",
   "scripts": {
+    "test": "mocha --recursive",
     "start:dev": "nodemon",
     "build": "rimraf ./build && tsc",
     "watch": "tsc -w",
@@ -14,10 +15,14 @@
     "fs": false
   },
   "dependencies": {
-    "axios": "^0.21.0"
+    "axios": "^0.21.0",
+    "date-fns": "^2.16.1"
   },
   "devDependencies": {
+    "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.6",
+    "lodash": "^4.17.20",
+    "mocha": "^8.2.1",
     "nodemon": "^2.0.6",
     "rimraf": "^3.0.2",
     "ts-node": "^9.0.0",

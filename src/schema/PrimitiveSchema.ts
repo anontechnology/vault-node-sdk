@@ -12,6 +12,15 @@ export class PrimitiveSchema {
   public setString(string: string): void {
     this.string = string;
   }
+
+  toString()  {
+    return this.string
+  }
+
+  toJSON() {
+    return this.string
+  }
+
 }
 
 export enum PrimitiveSchemaType {

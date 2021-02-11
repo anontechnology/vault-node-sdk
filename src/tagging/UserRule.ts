@@ -5,8 +5,11 @@ export class UserRule extends RegulationRule {
   private value?: string;
   private predicate?: UserValuePredicate;
 
-  constructor() {
+  constructor(attribute: string, predicate: UserValuePredicate, value: string) {
     super("user");
+    this.attribute = attribute;
+    this.value = value
+    this.predicate = predicate;
   }
 
   public getAttribute(): string | undefined {
@@ -35,5 +38,12 @@ export class UserRule extends RegulationRule {
 }
 
 export enum UserValuePredicate {
-  eq, neq, lt, gt, leq, geq, before, after
+  EQUALS = "eq",
+  NOT_EQUAL = "neq",
+  LESS_THAN = "lt",
+  GRATER_THAN = "gt",
+  LESS_THAN_EQUAL_TO = "leq",
+  GRATER_THAN_EQUAL_TO = "geq",
+  BEFORE = "before",
+  AFTER = "after"
 }

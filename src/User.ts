@@ -4,4 +4,6 @@ export class User extends Entity {
   public constructor(id: string) {
     super(id);
   }
+
+
 }

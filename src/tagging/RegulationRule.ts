@@ -12,4 +12,5 @@ export abstract class RegulationRule {
   public setType(type: string): void {
     this.type = type;
   }
+
 }

@@ -1,4 +1,6 @@
 import { Attribute } from "./Attribute";
+import {ValueException} from "./ValueException";
+import {DataIntegrityException} from "./DataIntegrityException";
 
 export class Entity {
   private attributes: Map<string, Attribute>;
@@ -7,6 +9,9 @@ export class Entity {
   private deletedAttributes: Array<string>;
   private id: string;
   private tags: Array<string>;
+  private created?: Date;
+  private updated?: Date;
+
 
   public constructor(id: string) {
     this.id = id;
@@ -39,6 +44,8 @@ export class Entity {
 
   clearAttribute(attributeKey: string) {
     this.attributes.delete(attributeKey);
+    this.repeatedAttributes.delete(attributeKey);
+    this.deletedAttributes.push(attributeKey);
   }
 
   getChangedAttributes(): Array<Attribute> {
@@ -57,13 +64,26 @@ export class Entity {
     this.deletedAttributes = deletedAttributes;
   }
 
-  addAttribute(attributeKey: string, value: any): void {
-    let attribute = new Attribute();
-    attribute.setAttribute(attributeKey);
-    attribute.setValue(value);
-
-    this._addAttribute(attribute);
+  addAttribute(attribute: any, value: any|undefined = undefined): void {
+    if (typeof attribute === "string") {
+      let new_attribute = new Attribute();
+      new_attribute.setAttribute(attribute);
+      if (value != undefined) {
+        new_attribute.setValue(value);
+      }
+      this._addAttribute(new_attribute);
+    }
+    else if ( typeof attribute === "object") {
+      if (value != undefined) {
+        attribute.setValue(value);
+      }
+      this._addAttribute(attribute)
+    }
+    else {
+      throw new ValueException("Add attribute accepts an attribute name [string] and value [any] pair or an Attribute [object]")
+    }
   }
+
 
   private _addAttribute(attribute: Attribute): void {
     this.addAttributeWithoutPendingChange(attribute);
@@ -94,25 +114,41 @@ export class Entity {
   }
 
   public setAttribute(attribute: Attribute) {
-    const attributeKey = attribute.getAttribute();
-    if(this.repeatedAttributes.has(attributeKey)){
-      this.repeatedAttributes.get(attributeKey).push(attribute);
-    } else {
-      this.attributes.set(attributeKey, attribute);
-    }
+    this.addAttributeWithoutPendingChange(attribute);
     this.changedAttributes.push(attribute);
   }
 
-  public getAttribute(attributeKey: string): any {
-    if (this.attributes.has(attributeKey)) {
-      return new Array(this.attributes.get(attributeKey));
+  public getAttribute (attributeKey: string): Attribute {
+    if (this.repeatedAttributes.has(attributeKey)) {
+      if (this.repeatedAttributes.get(attributeKey).size() == 1) {
+        return this.repeatedAttributes.get(attributeKey)[0] as Attribute;
+      } else {
+        throw new DataIntegrityException("Attribute " + attributeKey +  " has more than one value but only one can be legally returned from get Attribute");
+      }
+    } else if (this.attributes.has(attributeKey)) {
+      return this.attributes.get(attributeKey) as Attribute;
     } else {
-      return this.repeatedAttributes.get(attributeKey);
+      // Do we need to throw an exception here
+      return new Attribute();
     }
   }
 
-  public getAttributes(): Array<Attribute> {
-    return Array.from(this.attributes.values());
+  public getAttributes(attributeKey: string|undefined = undefined): Array<Attribute> {
+    if (attributeKey == null) {
+      let  flattenedRepeatedAttributes = [].concat.apply([], (Array.from(this.repeatedAttributes.values())) as Array<any> );
+      return Array.from(this.attributes.values()).concat(flattenedRepeatedAttributes);
+    }
+    else {
+      if (this.attributes.has(attributeKey)) {
+        if (this.attributes.get(attributeKey) == null)
+          return new Array();
+        else {
+          return new Array(this.attributes.get(attributeKey) as Attribute);
+        }
+      } else {
+        return this.repeatedAttributes.get(attributeKey);
+      }
+    }
   }
 
   public deleteAttribute(attributeKey: string) {

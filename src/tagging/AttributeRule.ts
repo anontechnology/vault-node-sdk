@@ -5,9 +5,10 @@ export class AttributeRule extends RegulationRule {
   private operator?: AttributeListOperator;
   private attributes: Array<String>;
 
-  constructor() {
+  constructor(attributes: Array<string>, operator: AttributeListOperator) {
     super("attribute");
-    this.attributes = new Array();
+    this.attributes = attributes;
+    this.operator = operator;
   }
 
   public getOperator(): AttributeListOperator | undefined {
@@ -28,5 +29,6 @@ export class AttributeRule extends RegulationRule {
 }
 
 export enum AttributeListOperator {
-  Any, None
+  ANY = "any",
+  NONE = "none"
 }
