@@ -237,13 +237,16 @@ export class ViziVault {
 
   public async getAttributeDefinition(attributeKey: string): Promise<AttributeDefinition> {
     const data = await this.getWithDecryptionKey("attributes/" + attributeKey);
-
-    return data;
+    return Object.assign(new AttributeDefinition(""), data.data);
   }
 
   public async getAttributeDefinitions(): Promise<Array<AttributeDefinition>> {
     const data = await this.getWithDecryptionKey("attributes/");
-    return data;
+    let attributeDefinitions: Array<AttributeDefinition> = [];
+    data.data.forEach((attributeDefinition: AttributeDefinition) => {
+      attributeDefinitions.push(Object.assign(new AttributeDefinition(""), attributeDefinition));
+    });
+    return attributeDefinitions
   }
 
   public async storeTag(tag: Tag): Promise<void> {

@@ -245,11 +245,24 @@ describe('Integration Tests:', function () {
 
     await vault.deleteRegulation(regulation.getKey() as string);
 
+    allRegulations = await vault.getRegulations()
     assert(allRegulations.some(function (thisRegulation) {
       return thisRegulation.getName() == regulation.getName();
-    }) == true);
+    }) != true);
   })
 
+  it('Test Attribute Definition', async function () {
+    let attributeDef1 = new AttributeDefinition("TestAttribute1");
+    attributeDef1.setIndexed(true);
+    await vault.storeAttributeDefinition(attributeDef1);
 
+    let receivedAttribute = await vault.getAttributeDefinition(attributeDef1.getName());
+    assert(receivedAttribute.getIndexed() == true);
+
+    let allAttributeDefinitions = await vault.getAttributeDefinitions();
+    assert(allAttributeDefinitions.some(function (attributeDefinition) {
+      return attributeDefinition.getName() == attributeDef1.getName();
+    }) == true);
+  })
 
 });
