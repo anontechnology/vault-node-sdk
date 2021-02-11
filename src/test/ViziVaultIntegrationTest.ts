@@ -1,4 +1,3 @@
-import {VaultException} from "../VaultException";
 const assert = require('assert');
 const lodash = require('lodash');
 import {ViziVault} from "../ViziVault";
@@ -10,7 +9,7 @@ import {Tag} from "../Tag";
 import {Regulation} from "../Regulation";
 import {ConjunctiveRule} from "../tagging/ConjunctiveRule";
 import {AttributeListOperator, AttributeRule} from "../tagging/AttributeRule";
-import {UserRule, UserValuePredicate} from "../tagging/UserRule";
+import {UserValuePredicate, UserRule} from "../tagging/UserRule";
 //import {VaultException} from "../VaultException";
 
 
@@ -217,6 +216,38 @@ describe('Integration Tests:', function () {
       throw(e);
     }
 
+  })
+
+  it('Test Regulations', async function () {
+
+    let regulation = new Regulation();
+    regulation.setName("Regulation Name");
+    regulation.setKey("RegulationKey");
+
+    let attributeDef1 = new AttributeDefinition("TestAttribute1");
+    await vault.storeAttributeDefinition(attributeDef1);
+
+    let rootRule = new ConjunctiveRule();
+    rootRule.addRule(new AttributeRule([attributeDef1.getName()], AttributeListOperator.ANY));
+    rootRule.addRule(new UserRule(attributeDef1.getName(), UserValuePredicate.EQUALS, "Test Attribute Value"));
+
+    regulation.setRule(rootRule);
+    await vault.storeRegulation(regulation);
+
+    let receivedRegulation = await vault.getRegulation(regulation.getKey() as string);
+
+    assert(regulation.getName(), receivedRegulation.getName())
+
+    let allRegulations = await vault.getRegulations()
+    assert(allRegulations.some(function (thisRegulation) {
+      return thisRegulation.getName() == regulation.getName();
+    }) == true);
+
+    await vault.deleteRegulation(regulation.getKey() as string);
+
+    assert(allRegulations.some(function (thisRegulation) {
+      return thisRegulation.getName() == regulation.getName();
+    }) == true);
   })
 
 

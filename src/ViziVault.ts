@@ -282,12 +282,25 @@ export class ViziVault {
 
   public async getRegulations(): Promise<Array<Regulation>> {
     const data = await this.getWithDecryptionKey("regulations/");
-    return data;
+    let regulations: Array<Regulation> = [];
+    data.data.forEach((regulation: Regulation) => {
+      regulations.push(Object.assign(new Regulation(), regulation));
+    });
+    return regulations;
   }
 
   public async getRegulation(key: string): Promise<Regulation> {
     const data = await this.getWithDecryptionKey("regulations/" + key);
-    return data;
+    return Object.assign(new Regulation(), data.data)
+  }
+
+  public async deleteRegulation(regulation: string): Promise<boolean> {
+    try {
+      let my_delete = await this.delete("regulations/" + regulation)
+      return true
+    } catch (VaultResponseException) {
+      return false;
+    }
   }
 
   public async search(searchRequest: SearchRequest, page: number, count: number): Promise<Array<Attribute>> {
@@ -312,7 +325,6 @@ export class ViziVault {
 
   public async getDataPoint(dataPointId: string): Promise<Attribute> {
     const data = await this.getWithDecryptionKey("data/" + dataPointId);
-    let new_attribute = Object.assign(new Attribute(), data.data)
-    return new_attribute;
+    return Object.assign(new Attribute(), data.data)
   }
 }
