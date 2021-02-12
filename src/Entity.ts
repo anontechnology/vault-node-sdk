@@ -93,7 +93,7 @@ export class Entity {
   addAttributeWithoutPendingChange(attribute: Attribute): void {
     let attributeKey = attribute.getAttribute();
     if (this.repeatedAttributes.has(attributeKey)) {
-      this.repeatedAttributes.get(attributeKey).add(attribute);
+      this.repeatedAttributes.get(attributeKey).push(attribute);
     } else if(this.attributes.has(attributeKey)) {
       let repeatableValues = new Array();
       repeatableValues.push(this.attributes.get(attributeKey));
@@ -118,7 +118,7 @@ export class Entity {
     this.changedAttributes.push(attribute);
   }
 
-  public getAttribute (attributeKey: string): Attribute {
+  public getAttribute (attributeKey: string): Attribute|undefined {
     if (this.repeatedAttributes.has(attributeKey)) {
       if (this.repeatedAttributes.get(attributeKey).size() == 1) {
         return this.repeatedAttributes.get(attributeKey)[0] as Attribute;
@@ -128,8 +128,7 @@ export class Entity {
     } else if (this.attributes.has(attributeKey)) {
       return this.attributes.get(attributeKey) as Attribute;
     } else {
-      // Do we need to throw an exception here
-      return new Attribute();
+      return undefined
     }
   }
 
