@@ -33,11 +33,11 @@ describe('Integration Tests:', function () {
   let secondUsername = 'exampleUser2'
 
 
-  afterEach(function (done) {
-    vault.purge('exampleUser');
-    vault.purge('exampleUser2');
-    done();
-  });
+   afterEach(function (done) {
+     vault.purge('exampleUser');
+     vault.purge('exampleUser2');
+     done();
+   });
 
 
   it('Load and retrieve data from vault', async function () {
@@ -59,7 +59,9 @@ describe('Integration Tests:', function () {
       await vault.save(sentUser)
 
       let testUser = await vault.findByUser(username) as User
-      assert(attribute1.getValue() == testUser.getAttribute(attributeDef1.getName()).getValue())
+      let receivedAttribute = testUser.getAttribute(attributeDef1.getName()) as Attribute
+
+      assert(attribute1.getValue() == receivedAttribute.getValue())
       assert(testUser.getAttributes().length == 3)
       assert(testUser.getAttributes(attributeDef2.getName()).length == 2);
 
@@ -69,13 +71,12 @@ describe('Integration Tests:', function () {
 
 
       let receivedUserAfterDeletion = await vault.findByUser(username)
-      assert(receivedUserAfterDeletion.getAttribute(attributeDef1.getName()) == null)
+      assert(receivedUserAfterDeletion.getAttribute(attributeDef1.getName()) == undefined)
     } catch (e) {
       await vault.purge('exampleUser');
       console.log(e);
-      return "";
+      throw(e)
     }
-
   });
 
   it('Test Search', async function () {
@@ -152,16 +153,16 @@ describe('Integration Tests:', function () {
       await vault.save(sentUser);
 
       let receivedUser = await vault.findByUser(username) as User;
-      let receivedAttribute = await receivedUser.getAttribute(attributeDef1.getName());
+      let receivedAttribute = await receivedUser.getAttribute(attributeDef1.getName()) as Attribute;
 
       assert(receivedAttribute.getTags().length == 3);
-      assert(receivedAttribute.getTags().some(function (tag) {
+      assert(receivedAttribute.getTags().some(function (tag: string) {
         return tag == "tag1"
       }) == true);
-      assert(receivedAttribute.getTags().some(function (tag) {
+      assert(receivedAttribute.getTags().some(function (tag: string) {
         return tag == "tag2"
       }) == true);
-      assert(receivedAttribute.getTags().some(function (tag) {
+      assert(receivedAttribute.getTags().some(function (tag: string) {
         return tag == "tag3"
       }) == true);
 

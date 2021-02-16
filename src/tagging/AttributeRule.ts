@@ -3,7 +3,7 @@ import { RegulationRule } from "./RegulationRule";
 export class AttributeRule extends RegulationRule {
 
   private operator?: AttributeListOperator;
-  private attributes: Array<String>;
+  private attributes: Array<string>;
 
   constructor(attributes: Array<string>, operator: AttributeListOperator) {
     super("attribute");
@@ -15,7 +15,7 @@ export class AttributeRule extends RegulationRule {
     return this.operator;
   }
 
-  public getAttributes(): Array<String> {
+  public getAttributes(): Array<string> {
     return this.attributes;
   }
 
@@ -23,7 +23,7 @@ export class AttributeRule extends RegulationRule {
     this.operator = operator;
   }
 
-  public setAttributes(attributes: Array<String>): void {
+  public setAttributes(attributes: Array<string>): void {
     this.attributes = attributes;
   }
 }

@@ -222,7 +222,7 @@ export class ViziVault {
     entity.setChangedAttributes([]);
   }
 
-  public async purge(userId: String) {
+  public async purge(userId: string) {
     await this.delete("users/" + userId + "/data");
   }
 
@@ -253,7 +253,7 @@ export class ViziVault {
     await this.post("tags", tag);
   }
 
-  public async getTag(tag: String): Promise<Tag> {
+  public async getTag(tag: string): Promise<Tag> {
     const data = await this.getWithDecryptionKey("tags/" + tag);
     return data;
   }
@@ -269,7 +269,7 @@ export class ViziVault {
     return tags;
   }
 
-  public async deleteTag(tag: String): Promise<boolean> {
+  public async deleteTag(tag: string): Promise<boolean> {
     try {
       let my_delete = await this.delete("tags/" + tag);
       return true;

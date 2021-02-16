@@ -5,7 +5,7 @@ export class Attribute {
   private sensitivity?: string | undefined;
   private value: any;
   private regulations: Array<string>;
-  private tags: Array<String>;
+  private tags: Array<string>;
   private createdDate?: Date;
   private modifiedDate?: Date;
 
@@ -29,11 +29,11 @@ export class Attribute {
     this.regulations = regulations;
   }
 
-  public getTags(): Array<String> {
+  public getTags(): Array<string> {
     return this.tags;
   }
 
-  public setTags(tags: Array<String>): void {
+  public setTags(tags: Array<string>): void {
     this.tags = tags;
   }
 
@@ -90,7 +90,7 @@ export class Attribute {
     return this;
   }
 
-  public getDataPointId(): String | undefined {
+  public getDataPointId(): string | undefined {
     return this.dataPointId;
   }
 
