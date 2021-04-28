@@ -330,4 +330,13 @@ export class ViziVault {
     const data = await this.getWithDecryptionKey("data/" + dataPointId);
     return Object.assign(new Attribute(), data.data)
   }
+
+  public async deleteDataPoint(dataPointId: string): Promise<boolean> {
+    try {
+      const data = await this.delete("data/" + dataPointId);
+      return true;
+    } catch (VaultResponseException) {
+      return false;
+    }
+  }
 }
